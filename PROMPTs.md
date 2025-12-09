@@ -22,3 +22,5 @@ getting this error now: E/AndroidRuntime(23866): Process: com.example.btc_traine
 +
 getting this error now: E/flutter (26089): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: type 'int' is not a subtype of type 'double'
   E/flutter (26089): #0      WalletViewModel._initialize.<anonymous closure> (package:btc_trainer/viewmodels/wallet_viewmodel.dart:41:24)
+
+Add below the BTC Balance his value in USD

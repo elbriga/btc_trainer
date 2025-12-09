@@ -92,6 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   'BTC Balance',
                   '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
+                  usdEquivalent:
+                      (viewModel.btcBalance * viewModel.currentBtcPrice),
                 ),
               ],
             ),
@@ -101,7 +103,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBalanceItem(BuildContext context, String title, String value) {
+  Widget _buildBalanceItem(
+    BuildContext context,
+    String title,
+    String value, {
+    double? usdEquivalent,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -112,6 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
+        if (usdEquivalent != null)
+          Text(
+            '(\$${usdEquivalent.toStringAsFixed(2)})',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
       ],
     );
   }
