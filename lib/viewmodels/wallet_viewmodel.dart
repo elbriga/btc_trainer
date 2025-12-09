@@ -1,17 +1,16 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../models/price_data.dart';
 import '../models/transaction_data.dart';
-import '../services/api_service.dart';
+import '../services/database_helper.dart';
 
 class WalletViewModel extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final dbHelper = DatabaseHelper.instance;
 
-  double _usdBalance = 10000.00; // Starting with $10,000 fake money
+  double _usdBalance = 10000.00;
   double _btcBalance = 0.0;
   List<PriceData> _priceHistory = [];
-  final List<TransactionData> _transactions = [];
-  Timer? _timer;
+  List<TransactionData> _transactions = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -21,31 +20,30 @@ class WalletViewModel extends ChangeNotifier {
   List<TransactionData> get transactions => _transactions;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  double get currentBtcPrice => _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
+  double get currentBtcPrice =>
+      _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
 
   WalletViewModel() {
     _initialize();
   }
 
-  void _initialize() {
-    _fetchPrice();
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _fetchPrice();
-    });
-  }
-
-  Future<void> _fetchPrice() async {
-    _isLoading = _priceHistory.isEmpty;
-    _errorMessage = null;
+  Future<void> _initialize() async {
+    _isLoading = true;
     notifyListeners();
 
     try {
-      final price = await _apiService.fetchBtcPrice();
-      _priceHistory.add(PriceData(price: price, timestamp: DateTime.now()));
-      // Keep the history to a reasonable size, e.g., last 100 data points
-      if (_priceHistory.length > 100) {
-        _priceHistory.removeAt(0);
-      }
+      _priceHistory = await dbHelper.getPrices();
+      _transactions = await dbHelper.getTransactions();
+      _recalculateBalances();
+
+      FlutterBackgroundService().on('update').listen((event) {
+        if (event == null) return;
+        final newPrice = PriceData(
+          price: (event['current_price'] as num).toDouble(),
+          timestamp: DateTime.parse(event['timestamp']),
+        );
+        addNewPrice(newPrice);
+      });
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -54,47 +52,72 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
-  void buyBtc(double usdAmount) {
+  void _recalculateBalances() {
+    double usd = 10000.00;
+    double btc = 0.0;
+
+    for (final transaction in _transactions.reversed) {
+      if (transaction.type == TransactionType.buy) {
+        final usdAmount = transaction.totalUsd;
+        if (usd >= usdAmount) {
+          usd -= usdAmount;
+          btc += transaction.btcAmount;
+        }
+      } else if (transaction.type == TransactionType.sell) {
+        if (btc >= transaction.btcAmount) {
+          btc -= transaction.btcAmount;
+          usd += transaction.totalUsd;
+        }
+      }
+    }
+    _usdBalance = usd;
+    _btcBalance = btc;
+  }
+
+  void addNewPrice(PriceData newPrice) {
+    _priceHistory.add(newPrice);
+    if (_priceHistory.length > 100) {
+      _priceHistory.removeAt(0);
+    }
+    notifyListeners();
+  }
+
+  Future<void> buyBtc(double usdAmount) async {
     if (usdAmount > 0 && usdAmount <= _usdBalance) {
       final price = currentBtcPrice;
+      if (price == 0) return;
+
       final btcAmount = usdAmount / price;
-      _usdBalance -= usdAmount;
-      _btcBalance += btcAmount;
-      _transactions.insert(
-        0,
-        TransactionData(
-          type: TransactionType.buy,
-          btcAmount: btcAmount,
-          pricePerBtc: price,
-          timestamp: DateTime.now(),
-        ),
+      final transaction = TransactionData(
+        type: TransactionType.buy,
+        btcAmount: btcAmount,
+        pricePerBtc: price,
+        timestamp: DateTime.now(),
       );
+
+      await dbHelper.insertTransaction(transaction);
+      _transactions.insert(0, transaction);
+      _recalculateBalances();
       notifyListeners();
     }
   }
 
-  void sellBtc(double btcAmount) {
+  Future<void> sellBtc(double btcAmount) async {
     if (btcAmount > 0 && btcAmount <= _btcBalance) {
       final price = currentBtcPrice;
-      final usdAmount = btcAmount * price;
-      _btcBalance -= btcAmount;
-      _usdBalance += usdAmount;
-      _transactions.insert(
-        0,
-        TransactionData(
-          type: TransactionType.sell,
-          btcAmount: btcAmount,
-          pricePerBtc: price,
-          timestamp: DateTime.now(),
-        ),
+      if (price == 0) return;
+
+      final transaction = TransactionData(
+        type: TransactionType.sell,
+        btcAmount: btcAmount,
+        pricePerBtc: price,
+        timestamp: DateTime.now(),
       );
+
+      await dbHelper.insertTransaction(transaction);
+      _transactions.insert(0, transaction);
+      _recalculateBalances();
       notifyListeners();
     }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 }
