@@ -54,14 +54,24 @@ class HomeScreen extends StatelessWidget {
           children: [
             Text(
               'Live BTC Price: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBalanceItem(context, 'USD Balance', '\$${viewModel.usdBalance.toStringAsFixed(2)}'),
-                _buildBalanceItem(context, 'BTC Balance', '${viewModel.btcBalance.toStringAsFixed(8)} BTC'),
+                _buildBalanceItem(
+                  context,
+                  'USD Balance',
+                  '\$${viewModel.usdBalance.toStringAsFixed(2)}',
+                ),
+                _buildBalanceItem(
+                  context,
+                  'BTC Balance',
+                  '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
+                ),
               ],
             ),
           ],
@@ -75,23 +85,50 @@ class HomeScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: Theme.of(context).textTheme.bodySmall),
-        Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
 
   Widget _buildChart(BuildContext context, WalletViewModel viewModel) {
+    if (viewModel.priceHistory.isEmpty) {
+      return const SizedBox(
+        height: 150,
+        child: Center(child: Text("No price data yet.")),
+      );
+    }
+
+    double minPrice = viewModel.priceHistory
+        .map((e) => e.price)
+        .reduce((a, b) => a < b ? a : b);
+    double maxPrice = viewModel.priceHistory
+        .map((e) => e.price)
+        .reduce((a, b) => a > b ? a : b);
+
+    if (minPrice == maxPrice) {
+      minPrice = minPrice - 5;
+      maxPrice = maxPrice + 5;
+    }
+
     return AspectRatio(
       aspectRatio: 1.7,
       child: LineChart(
         LineChartData(
           gridData: const FlGridData(show: false),
           titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: true, border: Border.all(color: const Color(0xff37434d), width: 1)),
+          borderData: FlBorderData(
+            show: true,
+            border: Border.all(color: const Color(0xff37434d), width: 1),
+          ),
           minX: 0,
           maxX: (viewModel.priceHistory.length - 1).toDouble(),
-          minY: viewModel.priceHistory.map((e) => e.price).reduce((a, b) => a < b ? a : b) * 0.95,
-          maxY: viewModel.priceHistory.map((e) => e.price).reduce((a, b) => a > b ? a : b) * 1.05,
+          minY: minPrice,
+          maxY: maxPrice,
           lineBarsData: [
             LineChartBarData(
               spots: _getChartSpots(viewModel.priceHistory),
@@ -100,7 +137,10 @@ class HomeScreen extends StatelessWidget {
               barWidth: 5,
               isStrokeCapRound: true,
               dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(show: true, color: Colors.orange.withOpacity(0.3)),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.orange.withAlpha(100),
+              ),
             ),
           ],
         ),
@@ -116,7 +156,10 @@ class HomeScreen extends StatelessWidget {
     return spots;
   }
 
-  Widget _buildTransactionHistory(BuildContext context, WalletViewModel viewModel) {
+  Widget _buildTransactionHistory(
+    BuildContext context,
+    WalletViewModel viewModel,
+  ) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,33 +173,33 @@ class HomeScreen extends StatelessWidget {
             child: viewModel.transactions.isEmpty
                 ? const Center(child: Text('No transactions yet.'))
                 : ListView.builder(
-              itemCount: viewModel.transactions.length,
-              itemBuilder: (context, index) {
-                final transaction = viewModel.transactions[index];
-                final isBuy = transaction.type == TransactionType.buy;
-                final title =
-                    '${isBuy ? 'Bought' : 'Sold'} ${transaction.btcAmount.toStringAsFixed(8)} BTC';
-                final subtitle =
-                    '@ \$${transaction.pricePerBtc.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
-                final total =
-                    'Total: \$${transaction.totalUsd.toStringAsFixed(2)}';
+                    itemCount: viewModel.transactions.length,
+                    itemBuilder: (context, index) {
+                      final transaction = viewModel.transactions[index];
+                      final isBuy = transaction.type == TransactionType.buy;
+                      final title =
+                          '${isBuy ? 'Bought' : 'Sold'} ${transaction.btcAmount.toStringAsFixed(8)} BTC';
+                      final subtitle =
+                          '@ \$${transaction.pricePerBtc.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
+                      final total =
+                          'Total: \$${transaction.totalUsd.toStringAsFixed(2)}';
 
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    leading: Icon(
-                      isBuy ? Icons.arrow_upward : Icons.arrow_downward,
-                      color: isBuy ? Colors.green : Colors.red,
-                    ),
-                    title: Text(title),
-                    subtitle: Text(subtitle),
-                    trailing: Text(total),
-                    isThreeLine: true,
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: Icon(
+                            isBuy ? Icons.arrow_upward : Icons.arrow_downward,
+                            color: isBuy ? Colors.green : Colors.red,
+                          ),
+                          title: Text(title),
+                          subtitle: Text(subtitle),
+                          trailing: Text(total),
+                          isThreeLine: true,
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

@@ -5,3 +5,5 @@ I want a new flutter app where it will track de Bitcoin price on a chart, then i
 Now add a transaction history list between the chart and the action buttons showing the amount and the price in USD
 
 Add a button "Total" on the buy/sell dialog to set the total amount to sell
+
+Make the chart zoomed on the total variation, eg.: find the min and the max of the series and those will be the min and the max on the chart
