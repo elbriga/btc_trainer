@@ -117,35 +117,88 @@ class HomeScreen extends StatelessWidget {
 
     return AspectRatio(
       aspectRatio: 1.7,
-      child: LineChart(
-        LineChartData(
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(
-            show: true,
-            border: Border.all(color: const Color(0xff37434d), width: 1),
-          ),
-          minX: 0,
-          maxX: (viewModel.priceHistory.length - 1).toDouble(),
-          minY: minPrice,
-          maxY: maxPrice,
-          lineBarsData: [
-            LineChartBarData(
-              spots: _getChartSpots(viewModel.priceHistory),
-              isCurved: true,
-              color: Colors.orange,
-              barWidth: 5,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
+      child: Stack(
+        children: [
+          LineChart(
+            LineChartData(
+              gridData: const FlGridData(show: false),
+              titlesData: const FlTitlesData(show: false),
+              borderData: FlBorderData(
                 show: true,
-                color: Colors.orange.withAlpha(100),
+                border: Border.all(color: const Color(0xff37434d), width: 1),
               ),
+              minX: 0,
+              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minY: minPrice,
+              maxY: maxPrice,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: _getChartSpots(viewModel.priceHistory),
+                  isCurved: true,
+                  color: Colors.orange,
+                  barWidth: 5,
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: Colors.orange.withOpacity(0.3),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          ScatterChart(
+            ScatterChartData(
+              scatterSpots: _generateTransactionSpots(viewModel),
+              minX: 0,
+              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minY: minPrice,
+              maxY: maxPrice,
+              gridData: const FlGridData(show: false),
+              titlesData: const FlTitlesData(show: false),
+              borderData: FlBorderData(show: false),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
+    final List<ScatterSpot> spots = [];
+
+    for (final transaction in viewModel.transactions) {
+      int closestIndex = -1;
+      Duration minDuration = const Duration(days: 999);
+
+      for (int i = 0; i < viewModel.priceHistory.length; i++) {
+        final duration = viewModel.priceHistory[i].timestamp
+            .difference(transaction.timestamp)
+            .abs();
+        if (duration < minDuration) {
+          minDuration = duration;
+          closestIndex = i;
+        }
+      }
+
+      if (closestIndex != -1) {
+        spots.add(
+          ScatterSpot(
+            closestIndex.toDouble(),
+            transaction.pricePerBtc,
+            dotPainter: FlDotCirclePainter(
+              radius: 6,
+              color: transaction.type == TransactionType.buy
+                  ? Colors.green
+                  : Colors.red,
+              strokeColor: Colors.white,
+              strokeWidth: 2,
+            ),
+          ),
+        );
+      }
+    }
+    return spots;
   }
 
   List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
