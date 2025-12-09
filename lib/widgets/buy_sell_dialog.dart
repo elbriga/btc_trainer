@@ -37,13 +37,34 @@ class _BuySellDialogState extends State<BuySellDialog> {
         children: [
           Text(balanceText),
           const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              hintText: hintText,
-              border: const OutlineInputBorder(),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              TextButton(
+                child: const Text('Total'),
+                onPressed: () {
+                  setState(() {
+                    _controller.text = widget.balance.toStringAsFixed(
+                      widget.isBuy ? 2 : 8,
+                    );
+                    _controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _controller.text.length),
+                    );
+                  });
+                },
+              ),
+            ],
           ),
         ],
       ),
