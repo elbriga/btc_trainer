@@ -159,6 +159,30 @@ class HomeScreen extends StatelessWidget {
               borderData: FlBorderData(show: false),
             ),
           ),
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: Text(
+              '\$${minPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 8,
+            top: 8,
+            child: Text(
+              '\$${maxPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
