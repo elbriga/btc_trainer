@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../viewmodels/wallet_viewmodel.dart';
 import '../models/price_data.dart';
+import '../models/transaction_data.dart';
 import '../widgets/buy_sell_dialog.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -31,6 +33,8 @@ class HomeScreen extends StatelessWidget {
                 _buildBalanceDisplay(context, viewModel),
                 const SizedBox(height: 24),
                 _buildChart(context, viewModel),
+                const SizedBox(height: 24),
+                _buildTransactionHistory(context, viewModel),
                 const SizedBox(height: 24),
                 _buildActionButtons(context, viewModel),
               ],
@@ -110,6 +114,53 @@ class HomeScreen extends StatelessWidget {
       spots.add(FlSpot(i.toDouble(), priceHistory[i].price));
     }
     return spots;
+  }
+
+  Widget _buildTransactionHistory(BuildContext context, WalletViewModel viewModel) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Transaction History',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: viewModel.transactions.isEmpty
+                ? const Center(child: Text('No transactions yet.'))
+                : ListView.builder(
+              itemCount: viewModel.transactions.length,
+              itemBuilder: (context, index) {
+                final transaction = viewModel.transactions[index];
+                final isBuy = transaction.type == TransactionType.buy;
+                final title =
+                    '${isBuy ? 'Bought' : 'Sold'} ${transaction.btcAmount.toStringAsFixed(8)} BTC';
+                final subtitle =
+                    '@ \$${transaction.pricePerBtc.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
+                final total =
+                    'Total: \$${transaction.totalUsd.toStringAsFixed(2)}';
+
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    leading: Icon(
+                      isBuy ? Icons.arrow_upward : Icons.arrow_downward,
+                      color: isBuy ? Colors.green : Colors.red,
+                    ),
+                    title: Text(title),
+                    subtitle: Text(subtitle),
+                    trailing: Text(total),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {

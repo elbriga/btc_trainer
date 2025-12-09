@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/price_data.dart';
+import '../models/transaction_data.dart';
 import '../services/api_service.dart';
 
 class WalletViewModel extends ChangeNotifier {
@@ -9,6 +10,7 @@ class WalletViewModel extends ChangeNotifier {
   double _usdBalance = 10000.00; // Starting with $10,000 fake money
   double _btcBalance = 0.0;
   List<PriceData> _priceHistory = [];
+  final List<TransactionData> _transactions = [];
   Timer? _timer;
   bool _isLoading = true;
   String? _errorMessage;
@@ -16,6 +18,7 @@ class WalletViewModel extends ChangeNotifier {
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
   List<PriceData> get priceHistory => _priceHistory;
+  List<TransactionData> get transactions => _transactions;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   double get currentBtcPrice => _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
@@ -53,18 +56,38 @@ class WalletViewModel extends ChangeNotifier {
 
   void buyBtc(double usdAmount) {
     if (usdAmount > 0 && usdAmount <= _usdBalance) {
-      final btcAmount = usdAmount / currentBtcPrice;
+      final price = currentBtcPrice;
+      final btcAmount = usdAmount / price;
       _usdBalance -= usdAmount;
       _btcBalance += btcAmount;
+      _transactions.insert(
+        0,
+        TransactionData(
+          type: TransactionType.buy,
+          btcAmount: btcAmount,
+          pricePerBtc: price,
+          timestamp: DateTime.now(),
+        ),
+      );
       notifyListeners();
     }
   }
 
   void sellBtc(double btcAmount) {
     if (btcAmount > 0 && btcAmount <= _btcBalance) {
-      final usdAmount = btcAmount * currentBtcPrice;
+      final price = currentBtcPrice;
+      final usdAmount = btcAmount * price;
       _btcBalance -= btcAmount;
       _usdBalance += usdAmount;
+      _transactions.insert(
+        0,
+        TransactionData(
+          type: TransactionType.sell,
+          btcAmount: btcAmount,
+          pricePerBtc: price,
+          timestamp: DateTime.now(),
+        ),
+      );
       notifyListeners();
     }
   }
