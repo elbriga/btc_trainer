@@ -23,11 +23,12 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isBuy ? 'Buy USD' : 'Sell USD';
+    final title = widget.isBuy ? 'Comprar USD' : 'Vender USD';
     final balanceText = widget.isBuy
-        ? 'BRL Balance: R\$${widget.balance.toStringAsFixed(2)}'
-        : 'USD Balance: \$${widget.balance.toStringAsFixed(2)}';
-    final hintText = widget.isBuy ? 'Amount in BRL' : 'Amount in USD';
+        ? 'Saldo em BRL: R\$${widget.balance.toStringAsFixed(2)}'
+        : 'Saldo em USD: \$${widget.balance.toStringAsFixed(2)}';
+    final hintText =
+        widget.isBuy ? 'Quantidade em BRL' : 'Quantidade em USD';
 
     return AlertDialog(
       title: Text(title),
@@ -68,11 +69,11 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
       ),
       actions: [
         TextButton(
-          child: const Text('Cancel'),
+          child: const Text('Cancelar'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Confirm'),
+          child: const Text('Confirmar'),
           onPressed: () {
             final amount = double.tryParse(_controller.text);
             if (amount != null && amount > 0 && amount <= widget.balance) {
@@ -80,7 +81,8 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
               Navigator.of(context).pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Invalid or insufficient amount')),
+                const SnackBar(
+                    content: Text('Valor inválido ou insuficiente')),
               );
             }
           },

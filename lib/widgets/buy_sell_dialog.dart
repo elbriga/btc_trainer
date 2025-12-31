@@ -28,12 +28,13 @@ class _BuySellDialogState extends State<BuySellDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final title =
-        widget.isBuy ? 'Buy ${widget.to.toString().split('.').last.toUpperCase()}' : 'Sell ${widget.from.toString().split('.').last.toUpperCase()}';
+    final title = widget.isBuy
+        ? 'Comprar ${widget.to.toString().split('.').last.toUpperCase()}'
+        : 'Vender ${widget.from.toString().split('.').last.toUpperCase()}';
     final balanceText =
-        '${widget.from.toString().split('.').last.toUpperCase()} Balance: ${widget.balance.toStringAsFixed(widget.from == Currency.btc ? 8 : 2)}';
+        'Saldo em ${widget.from.toString().split('.').last.toUpperCase()}: ${widget.balance.toStringAsFixed(widget.from == Currency.btc ? 8 : 2)}';
     final hintText =
-        'Amount in ${widget.from.toString().split('.').last.toUpperCase()}';
+        'Quantidade em ${widget.from.toString().split('.').last.toUpperCase()}';
 
     return AlertDialog(
       title: Text(title),
@@ -76,11 +77,11 @@ class _BuySellDialogState extends State<BuySellDialog> {
       ),
       actions: [
         TextButton(
-          child: const Text('Cancel'),
+          child: const Text('Cancelar'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Confirm'),
+          child: const Text('Confirmar'),
           onPressed: () {
             final amount = double.tryParse(_controller.text);
             if (amount != null && amount > 0 && amount <= widget.balance) {
@@ -89,7 +90,8 @@ class _BuySellDialogState extends State<BuySellDialog> {
             } else {
               // Optional: Show an error message
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Invalid or insufficient amount')),
+                const SnackBar(
+                    content: Text('Valor inválido ou insuficiente')),
               );
             }
           },

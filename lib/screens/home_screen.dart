@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BTC Trainer'),
+        title: const Text('Simulador de BTC'),
         centerTitle: true,
         backgroundColor: Colors.orangeAccent,
       ),
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (viewModel.errorMessage != null) {
-            return Center(child: Text('Error: ${viewModel.errorMessage}'));
+            return Center(child: Text('Erro: ${viewModel.errorMessage}'));
           }
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -78,14 +78,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Text(
-              'Live BTC Price: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
+              'Preço do BTC: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Live USD Price: R\$${viewModel.usdBrlPrice.toStringAsFixed(2)}',
+              'Preço do USD: R\$${viewModel.usdBrlPrice.toStringAsFixed(2)}',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -96,17 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildBalanceItem(
                   context,
-                  'BRL Balance',
+                  'Saldo em BRL',
                   'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
                 ),
                 _buildBalanceItem(
                   context,
-                  'USD Balance',
+                  'Saldo em USD',
                   '\$${viewModel.usdBalance.toStringAsFixed(2)}',
                 ),
                 _buildBalanceItem(
                   context,
-                  'BTC Balance',
+                  'Saldo em BTC',
                   '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
                   usdEquivalent:
                       (viewModel.btcBalance * viewModel.currentBtcPrice),
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (viewModel.priceHistory.isEmpty) {
       return const SizedBox(
         height: 150,
-        child: Center(child: Text("No price data yet.")),
+        child: Center(child: Text("Ainda não há dados de preço.")),
       );
     }
 
@@ -295,13 +295,13 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Transaction History',
+            'Histórico de Transações',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Expanded(
             child: viewModel.transactions.isEmpty
-                ? const Center(child: Text('No transactions yet.'))
+                ? const Center(child: Text('Nenhuma transação ainda.'))
                 : ListView.builder(
                     itemCount: viewModel.transactions.length,
                     itemBuilder: (context, index) {
@@ -318,9 +318,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         totalCurrencySymbol = 'R\$';
                       }
                       final title =
-                          '${isBuy ? 'Bought' : 'Sold'} ${transaction.amount.toStringAsFixed(8)} $currencySymbol';
+                          '${isBuy ? 'Comprou' : 'Vendeu'} ${transaction.amount.toStringAsFixed(8)} $currencySymbol';
                       final subtitle =
-                          '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
+                          '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} / cada\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
                       final total =
                           'Total: $totalCurrencySymbol${(transaction.amount * transaction.price).toStringAsFixed(2)}';
 
@@ -347,13 +347,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUsdActionButtons(
-      BuildContext context, WalletViewModel viewModel) {
+    BuildContext context,
+    WalletViewModel viewModel,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_upward),
-          label: const Text('Buy USD'),
+          label: const Text('Comprar USD'),
           onPressed: () {
             showDialog(
               context: context,
@@ -373,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_downward),
-          label: const Text('Sell USD'),
+          label: const Text('Vender USD'),
           onPressed: () {
             showDialog(
               context: context,
@@ -396,13 +398,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBtcActionButtons(
-      BuildContext context, WalletViewModel viewModel) {
+    BuildContext context,
+    WalletViewModel viewModel,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_upward),
-          label: const Text('Buy BTC'),
+          label: const Text('Comprar BTC'),
           onPressed: () {
             showDialog(
               context: context,
@@ -424,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_downward),
-          label: const Text('Sell BTC'),
+          label: const Text('Vender BTC'),
           onPressed: () {
             showDialog(
               context: context,

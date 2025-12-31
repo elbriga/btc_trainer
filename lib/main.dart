@@ -34,8 +34,8 @@ Future<void> initializeService() async {
       autoStart: false,
       isForegroundMode: true,
       notificationChannelId: 'btc_trainer_service',
-      initialNotificationTitle: 'BTC Price Service',
-      initialNotificationContent: 'Fetching Bitcoin price...',
+      initialNotificationTitle: 'Serviço de Preço BTC',
+      initialNotificationContent: 'Buscando o preço do Bitcoin...',
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
@@ -62,10 +62,10 @@ Future<double> fetchUsdBrlPrice() async {
       final data = json.decode(response.body);
       return double.tryParse(data['USDBRL']['high']) ?? 0.00;
     } else {
-      throw Exception('Failed to load USD-BRL price');
+      throw Exception('Falha ao carregar o preço do USD-BRL');
     }
   } catch (e) {
-    throw Exception('Failed to connect to the server :: $e');
+    throw Exception('Falha ao conectar ao servidor :: $e');
   }
 }
 
@@ -80,10 +80,10 @@ Future<double> fetchBtcPrice() async {
       final data = json.decode(response.body);
       return data['bitcoin']['usd'].toDouble();
     } else {
-      throw Exception('Failed to load BTC price');
+      throw Exception('Falha ao carregar o preço do BTC');
     }
   } catch (e) {
-    throw Exception('Failed to connect to the server :: $e');
+    throw Exception('Falha ao conectar ao servidor :: $e');
   }
 }
 
@@ -130,7 +130,7 @@ class BtcTrainerApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => WalletViewModel(),
       child: MaterialApp(
-        title: 'BTC Trainer',
+        title: 'Simulador de BTC',
         theme: ThemeData(
           primarySwatch: Colors.orange,
           visualDensity: VisualDensity.adaptivePlatformDensity,
