@@ -28,3 +28,5 @@ Add below the BTC Balance his value in USD
 Lets add another feature to our Bitcoin trainer app: The app is meant to be used in Brazil, so lets add a USD buy and sell feature, where you start with 50K Brazilian Real BRL. The user should first buy US Dollars and then buy Bitcoin, and same on reverse, first sell bitcoin for dollars, then sell dollars for BRL. I've already added a function to fetch the USD-BRL price on main.dart: fetchUsdBrlPrice(). Use it to make the USD buy and sell
 
 Translate all the app to brazilian portuguese
+
+Move the buy and sell USD buttons to the bottom of the app, make to groups of buttons: one for USD and one for BTC buy and sell

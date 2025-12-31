@@ -57,11 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 _buildChart(context, viewModel),
                 const SizedBox(height: 24),
-                _buildUsdActionButtons(context, viewModel),
-                const SizedBox(height: 24),
                 _buildTransactionHistory(context, viewModel),
-                const SizedBox(height: 24),
-                _buildBtcActionButtons(context, viewModel),
+                const SizedBox(height: 12),
+                _buildActionButtons(context, viewModel),
               ],
             ),
           );
@@ -346,107 +344,110 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildUsdActionButtons(
-    BuildContext context,
-    WalletViewModel viewModel,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
+    return Column(
       children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_upward),
-          label: const Text('Comprar USD'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellUsdDialog(
-                isBuy: true,
-                onSubmit: (amount) => viewModel.buyUsd(amount),
-                balance: viewModel.brlBalance,
-                usdBrlPrice: viewModel.usdBrlPrice,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_upward),
+              label: const Text('USD'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellUsdDialog(
+                    isBuy: true,
+                    onSubmit: (amount) => viewModel.buyUsd(amount),
+                    balance: viewModel.brlBalance,
+                    usdBrlPrice: viewModel.usdBrlPrice,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_downward),
-          label: const Text('Vender USD'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellUsdDialog(
-                isBuy: false,
-                onSubmit: (amount) => viewModel.sellUsd(amount),
-                balance: viewModel.usdBalance,
-                usdBrlPrice: viewModel.usdBrlPrice,
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_downward),
+              label: const Text('USD'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellUsdDialog(
+                    isBuy: false,
+                    onSubmit: (amount) => viewModel.sellUsd(amount),
+                    balance: viewModel.usdBalance,
+                    usdBrlPrice: viewModel.usdBrlPrice,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
-        ),
-      ],
-    );
-  }
+            ),
 
-  Widget _buildBtcActionButtons(
-    BuildContext context,
-    WalletViewModel viewModel,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_upward),
-          label: const Text('Comprar BTC'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellDialog(
-                isBuy: true,
-                onSubmit: (amount) => viewModel.buyBtc(amount),
-                balance: viewModel.usdBalance,
-                price: viewModel.currentBtcPrice,
-                from: Currency.usd,
-                to: Currency.btc,
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_upward),
+              label: const Text('BTC'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellDialog(
+                    isBuy: true,
+                    onSubmit: (amount) => viewModel.buyBtc(amount),
+                    balance: viewModel.usdBalance,
+                    price: viewModel.currentBtcPrice,
+                    from: Currency.usd,
+                    to: Currency.btc,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_downward),
-          label: const Text('Vender BTC'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellDialog(
-                isBuy: false,
-                onSubmit: (amount) => viewModel.sellBtc(amount),
-                balance: viewModel.btcBalance,
-                price: viewModel.currentBtcPrice,
-                from: Currency.btc,
-                to: Currency.usd,
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_downward),
+              label: const Text('BTC'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellDialog(
+                    isBuy: false,
+                    onSubmit: (amount) => viewModel.sellBtc(amount),
+                    balance: viewModel.btcBalance,
+                    price: viewModel.currentBtcPrice,
+                    from: Currency.btc,
+                    to: Currency.usd,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
+            ),
+          ],
         ),
       ],
     );
