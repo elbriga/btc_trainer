@@ -53,6 +53,22 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   return true;
 }
 
+Future<double> fetchUsdBrlPrice() async {
+  try {
+    final response = await http.get(
+      Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return double.tryParse(data['USDBRL']['high']) ?? 0.00;
+    } else {
+      throw Exception('Failed to load USD-BRL price');
+    }
+  } catch (e) {
+    throw Exception('Failed to connect to the server :: $e');
+  }
+}
+
 Future<double> fetchBtcPrice() async {
   try {
     final response = await http.get(
@@ -67,7 +83,7 @@ Future<double> fetchBtcPrice() async {
       throw Exception('Failed to load BTC price');
     }
   } catch (e) {
-    throw Exception('Failed to connect to the server');
+    throw Exception('Failed to connect to the server :: $e');
   }
 }
 
@@ -92,6 +108,9 @@ void onStart(ServiceInstance service) async {
   final dbHelper = DatabaseHelper.instance;
 
   Timer.periodic(const Duration(minutes: 1), (timer) async {
+    final usdPrice = await fetchUsdBrlPrice();
+    print(">>>>>>>>>>>>> USD price: " + usdPrice.toString());
+
     final price = await fetchBtcPrice();
     final priceData = PriceData(price: price, timestamp: DateTime.now());
     await dbHelper.insertPrice(priceData);

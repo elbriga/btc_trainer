@@ -24,3 +24,5 @@ getting this error now: E/flutter (26089): [ERROR:flutter/runtime/dart_vm_initia
   E/flutter (26089): #0      WalletViewModel._initialize.<anonymous closure> (package:btc_trainer/viewmodels/wallet_viewmodel.dart:41:24)
 
 Add below the BTC Balance his value in USD
+
+Lets add another feature to our Bitcoin trainer app: The app is meant to be used in Brazil, so lets add a USD buy and sell feature, where you start with 50K Brazilian Real BRL. The user should first buy US Dollars and then buy Bitcoin, and same on reverse, first sell bitcoin for dollars, then sell dollars for BRL. I've already added a function to fetch the USD-BRL cotation: fetchUsdBrlPrice(). Use it to make the USD buy and sell
