@@ -1,3 +1,5 @@
+import 'package:btc_trainer/models/currency.dart';
+import 'package:btc_trainer/widgets/buy_sell_usd_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -55,9 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 _buildChart(context, viewModel),
                 const SizedBox(height: 24),
+                _buildUsdActionButtons(context, viewModel),
+                const SizedBox(height: 24),
                 _buildTransactionHistory(context, viewModel),
                 const SizedBox(height: 24),
-                _buildActionButtons(context, viewModel),
+                _buildBtcActionButtons(context, viewModel),
               ],
             ),
           );
@@ -79,10 +83,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Live USD Price: R\$${viewModel.usdBrlPrice.toStringAsFixed(2)}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                _buildBalanceItem(
+                  context,
+                  'BRL Balance',
+                  'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                ),
                 _buildBalanceItem(
                   context,
                   'USD Balance',
@@ -227,34 +243,36 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<ScatterSpot> spots = [];
 
     for (final transaction in viewModel.transactions) {
-      int closestIndex = -1;
-      Duration minDuration = const Duration(days: 999);
+      if (transaction.from == Currency.btc || transaction.to == Currency.btc) {
+        int closestIndex = -1;
+        Duration minDuration = const Duration(days: 999);
 
-      for (int i = 0; i < viewModel.priceHistory.length; i++) {
-        final duration = viewModel.priceHistory[i].timestamp
-            .difference(transaction.timestamp)
-            .abs();
-        if (duration < minDuration) {
-          minDuration = duration;
-          closestIndex = i;
+        for (int i = 0; i < viewModel.priceHistory.length; i++) {
+          final duration = viewModel.priceHistory[i].timestamp
+              .difference(transaction.timestamp)
+              .abs();
+          if (duration < minDuration) {
+            minDuration = duration;
+            closestIndex = i;
+          }
         }
-      }
 
-      if (closestIndex != -1) {
-        spots.add(
-          ScatterSpot(
-            closestIndex.toDouble(),
-            transaction.pricePerBtc,
-            dotPainter: FlDotCirclePainter(
-              radius: 6,
-              color: transaction.type == TransactionType.buy
-                  ? Colors.green
-                  : Colors.red,
-              strokeColor: Colors.white,
-              strokeWidth: 2,
+        if (closestIndex != -1) {
+          spots.add(
+            ScatterSpot(
+              closestIndex.toDouble(),
+              transaction.price,
+              dotPainter: FlDotCirclePainter(
+                radius: 6,
+                color: transaction.type == TransactionType.buy
+                    ? Colors.green
+                    : Colors.red,
+                strokeColor: Colors.white,
+                strokeWidth: 2,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     }
     return spots;
@@ -289,12 +307,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final transaction = viewModel.transactions[index];
                       final isBuy = transaction.type == TransactionType.buy;
+                      final String currencySymbol;
+                      final String totalCurrencySymbol;
+                      if (transaction.to == Currency.btc ||
+                          transaction.from == Currency.btc) {
+                        currencySymbol = 'BTC';
+                        totalCurrencySymbol = '\$';
+                      } else {
+                        currencySymbol = 'USD';
+                        totalCurrencySymbol = 'R\$';
+                      }
                       final title =
-                          '${isBuy ? 'Bought' : 'Sold'} ${transaction.btcAmount.toStringAsFixed(8)} BTC';
+                          '${isBuy ? 'Bought' : 'Sold'} ${transaction.amount.toStringAsFixed(8)} $currencySymbol';
                       final subtitle =
-                          '@ \$${transaction.pricePerBtc.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
+                          '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
                       final total =
-                          'Total: \$${transaction.totalUsd.toStringAsFixed(2)}';
+                          'Total: $totalCurrencySymbol${(transaction.amount * transaction.price).toStringAsFixed(2)}';
 
                       return Card(
                         elevation: 2,
@@ -318,21 +346,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
+  Widget _buildUsdActionButtons(
+      BuildContext context, WalletViewModel viewModel) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_upward),
-          label: const Text('Buy'),
+          label: const Text('Buy USD'),
           onPressed: () {
             showDialog(
               context: context,
-              builder: (_) => BuySellDialog(
+              builder: (_) => BuySellUsdDialog(
                 isBuy: true,
-                onSubmit: (amount) => viewModel.buyBtc(amount),
-                balance: viewModel.usdBalance,
-                btcPrice: viewModel.currentBtcPrice,
+                onSubmit: (amount) => viewModel.buyUsd(amount),
+                balance: viewModel.brlBalance,
+                usdBrlPrice: viewModel.usdBrlPrice,
               ),
             );
           },
@@ -344,7 +373,58 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         ElevatedButton.icon(
           icon: const Icon(Icons.arrow_downward),
-          label: const Text('Sell'),
+          label: const Text('Sell USD'),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (_) => BuySellUsdDialog(
+                isBuy: false,
+                onSubmit: (amount) => viewModel.sellUsd(amount),
+                balance: viewModel.usdBalance,
+                usdBrlPrice: viewModel.usdBrlPrice,
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBtcActionButtons(
+      BuildContext context, WalletViewModel viewModel) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton.icon(
+          icon: const Icon(Icons.arrow_upward),
+          label: const Text('Buy BTC'),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (_) => BuySellDialog(
+                isBuy: true,
+                onSubmit: (amount) => viewModel.buyBtc(amount),
+                balance: viewModel.usdBalance,
+                price: viewModel.currentBtcPrice,
+                from: Currency.usd,
+                to: Currency.btc,
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+          ),
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.arrow_downward),
+          label: const Text('Sell BTC'),
           onPressed: () {
             showDialog(
               context: context,
@@ -352,7 +432,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 isBuy: false,
                 onSubmit: (amount) => viewModel.sellBtc(amount),
                 balance: viewModel.btcBalance,
-                btcPrice: viewModel.currentBtcPrice,
+                price: viewModel.currentBtcPrice,
+                from: Currency.btc,
+                to: Currency.usd,
               ),
             );
           },

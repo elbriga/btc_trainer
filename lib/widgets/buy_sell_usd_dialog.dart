@@ -1,39 +1,33 @@
-import 'package:btc_trainer/models/currency.dart';
 import 'package:flutter/material.dart';
 
-class BuySellDialog extends StatefulWidget {
+class BuySellUsdDialog extends StatefulWidget {
   final bool isBuy;
   final Function(double) onSubmit;
   final double balance;
-  final double price;
-  final Currency from;
-  final Currency to;
+  final double usdBrlPrice;
 
-  const BuySellDialog({
+  const BuySellUsdDialog({
     super.key,
     required this.isBuy,
     required this.onSubmit,
     required this.balance,
-    required this.price,
-    required this.from,
-    required this.to,
+    required this.usdBrlPrice,
   });
 
   @override
-  _BuySellDialogState createState() => _BuySellDialogState();
+  _BuySellUsdDialogState createState() => _BuySellUsdDialogState();
 }
 
-class _BuySellDialogState extends State<BuySellDialog> {
+class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
   final _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final title =
-        widget.isBuy ? 'Buy ${widget.to.toString().split('.').last.toUpperCase()}' : 'Sell ${widget.from.toString().split('.').last.toUpperCase()}';
-    final balanceText =
-        '${widget.from.toString().split('.').last.toUpperCase()} Balance: ${widget.balance.toStringAsFixed(widget.from == Currency.btc ? 8 : 2)}';
-    final hintText =
-        'Amount in ${widget.from.toString().split('.').last.toUpperCase()}';
+    final title = widget.isBuy ? 'Buy USD' : 'Sell USD';
+    final balanceText = widget.isBuy
+        ? 'BRL Balance: R\$${widget.balance.toStringAsFixed(2)}'
+        : 'USD Balance: \$${widget.balance.toStringAsFixed(2)}';
+    final hintText = widget.isBuy ? 'Amount in BRL' : 'Amount in USD';
 
     return AlertDialog(
       title: Text(title),
@@ -61,9 +55,7 @@ class _BuySellDialogState extends State<BuySellDialog> {
                 child: const Text('Total'),
                 onPressed: () {
                   setState(() {
-                    _controller.text = widget.balance.toStringAsFixed(
-                      widget.from == Currency.btc ? 8 : 2,
-                    );
+                    _controller.text = widget.balance.toStringAsFixed(2);
                     _controller.selection = TextSelection.fromPosition(
                       TextPosition(offset: _controller.text.length),
                     );
@@ -87,7 +79,6 @@ class _BuySellDialogState extends State<BuySellDialog> {
               widget.onSubmit(amount);
               Navigator.of(context).pop();
             } else {
-              // Optional: Show an error message
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Invalid or insufficient amount')),
               );
