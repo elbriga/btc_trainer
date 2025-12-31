@@ -1,25 +1,25 @@
-enum TransactionType { buy, sell }
+enum TransactionType { buyBtc, sellBtc, buyUsd, sellUsd }
 
 class TransactionData {
   final TransactionType type;
-  final double btcAmount;
-  final double pricePerBtc;
+  final double amount;
+  final double pricePerUnit;
   final DateTime timestamp;
 
   TransactionData({
     required this.type,
-    required this.btcAmount,
-    required this.pricePerBtc,
+    required this.amount,
+    required this.pricePerUnit,
     required this.timestamp,
   });
 
-  double get totalUsd => btcAmount * pricePerBtc;
+  double get total => amount * pricePerUnit;
 
   Map<String, dynamic> toMap() {
     return {
       'type': type.toString().split('.').last,
-      'btcAmount': btcAmount,
-      'pricePerBtc': pricePerBtc,
+      'amount': amount,
+      'pricePerUnit': pricePerUnit,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -29,8 +29,8 @@ class TransactionData {
       type: TransactionType.values.firstWhere(
         (e) => e.toString().split('.').last == map['type'],
       ),
-      btcAmount: map['btcAmount'],
-      pricePerBtc: map['pricePerBtc'],
+      amount: map['amount'],
+      pricePerUnit: map['pricePerUnit'],
       timestamp: DateTime.parse(map['timestamp']),
     );
   }

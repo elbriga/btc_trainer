@@ -139,10 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     double minPrice = viewModel.priceHistory
-        .map((e) => e.price)
+        .map((e) => e.btcPrice)
         .reduce((a, b) => a < b ? a : b);
     double maxPrice = viewModel.priceHistory
-        .map((e) => e.price)
+        .map((e) => e.btcPrice)
         .reduce((a, b) => a > b ? a : b);
 
     if (minPrice == maxPrice) {
@@ -263,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
     final List<FlSpot> spots = [];
     for (int i = 0; i < priceHistory.length; i++) {
-      spots.add(FlSpot(i.toDouble(), priceHistory[i].price));
+      spots.add(FlSpot(i.toDouble(), priceHistory[i].btcPrice));
     }
     return spots;
   }

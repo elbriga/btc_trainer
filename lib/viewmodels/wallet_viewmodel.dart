@@ -21,7 +21,7 @@ class WalletViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   double get currentBtcPrice =>
-      _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
+      _priceHistory.isEmpty ? 0 : _priceHistory.last.btcPrice;
 
   WalletViewModel() {
     _initialize();
@@ -39,7 +39,7 @@ class WalletViewModel extends ChangeNotifier {
       FlutterBackgroundService().on('update').listen((event) {
         if (event == null) return;
         final newPrice = PriceData(
-          price: (event['current_price'] as num).toDouble(),
+          btcPrice: (event['current_price'] as num).toDouble(),
           timestamp: DateTime.parse(event['timestamp']),
         );
         addNewPrice(newPrice);

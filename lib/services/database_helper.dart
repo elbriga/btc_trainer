@@ -26,7 +26,8 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE prices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        price REAL NOT NULL,
+        btcPrice REAL NOT NULL,
+        usdPrice REAL NOT NULL,
         timestamp TEXT NOT NULL
       )
     ''');
@@ -35,8 +36,8 @@ class DatabaseHelper {
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        btcAmount REAL NOT NULL,
-        pricePerBtc REAL NOT NULL,
+        amount REAL NOT NULL,
+        pricePerUnit REAL NOT NULL,
         timestamp TEXT NOT NULL
       )
     ''');

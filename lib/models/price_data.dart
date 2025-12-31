@@ -1,16 +1,26 @@
 class PriceData {
-  final double price;
+  final double btcPrice;
+  final double usdPrice;
   final DateTime timestamp;
 
-  PriceData({required this.price, required this.timestamp});
+  PriceData({
+    required this.btcPrice,
+    required this.usdPrice,
+    required this.timestamp,
+  });
 
   Map<String, dynamic> toMap() {
-    return {'price': price, 'timestamp': timestamp.toIso8601String()};
+    return {
+      'btcPrice': btcPrice,
+      'usdPrice': usdPrice,
+      'timestamp': timestamp.toIso8601String(),
+    };
   }
 
   factory PriceData.fromMap(Map<String, dynamic> map) {
     return PriceData(
-      price: map['price'],
+      btcPrice: map['btcPrice'],
+      usdPrice: map['usdPrice'],
       timestamp: DateTime.parse(map['timestamp']),
     );
   }

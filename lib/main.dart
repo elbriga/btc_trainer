@@ -53,6 +53,22 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   return true;
 }
 
+Future<double> fetchUsdBrlPrice() async {
+  try {
+    final response = await http.get(
+      Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['USDBRL']['high'].toDouble();
+    } else {
+      throw Exception('Failed to load USD-BRL price');
+    }
+  } catch (e) {
+    throw Exception('Failed to connect to the server');
+  }
+}
+
 Future<double> fetchBtcPrice() async {
   try {
     final response = await http.get(
@@ -92,13 +108,20 @@ void onStart(ServiceInstance service) async {
   final dbHelper = DatabaseHelper.instance;
 
   Timer.periodic(const Duration(minutes: 1), (timer) async {
-    final price = await fetchBtcPrice();
-    final priceData = PriceData(price: price, timestamp: DateTime.now());
-    await dbHelper.insertPrice(priceData);
+    final btcPrice = await fetchBtcPrice();
+    final usdPrice = await fetchUsdBrlPrice();
+
+    final btcPriceData = PriceData(
+      btcPrice: btcPrice,
+      usdPrice: usdPrice,
+      timestamp: DateTime.now(),
+    );
+
+    await dbHelper.insertPrice(btcPriceData);
 
     service.invoke('update', {
-      "current_price": price,
-      "timestamp": priceData.timestamp.toIso8601String(),
+      "current_price": btcPrice,
+      "timestamp": btcPriceData.timestamp.toIso8601String(),
     });
   });
 }
