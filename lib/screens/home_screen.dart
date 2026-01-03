@@ -108,6 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
                   usdEquivalent:
                       (viewModel.btcBalance * viewModel.currentBtcPrice),
+                  brlEquivalent:
+                      (viewModel.btcBalance * viewModel.currentBtcPrice) *
+                      viewModel.usdBrlPrice,
                 ),
               ],
             ),
@@ -122,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String title,
     String value, {
     double? usdEquivalent,
+    double? brlEquivalent,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +139,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         if (usdEquivalent != null)
           Text(
-            '(\$${usdEquivalent.toStringAsFixed(2)})',
+            '(\$ ${usdEquivalent.toStringAsFixed(2)})',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+        if (brlEquivalent != null)
+          Text(
+            '(R\$ ${brlEquivalent.toStringAsFixed(2)})',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
