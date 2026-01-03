@@ -175,6 +175,20 @@ class _HomeScreenState extends State<HomeScreen> {
       maxPrice = maxPrice + 5;
     }
 
+    double minUsdPrice = viewModel.priceHistory
+        .map((e) => e.dollarPrice)
+        .reduce((a, b) => a < b ? a : b);
+    double maxUsdPrice = viewModel.priceHistory
+        .map((e) => e.dollarPrice)
+        .reduce((a, b) => a > b ? a : b);
+
+    if (minUsdPrice == maxUsdPrice) {
+      minUsdPrice = minUsdPrice - 0.1;
+      maxUsdPrice = maxUsdPrice + 0.1;
+    }
+
+    double dollarOffset = minPrice + ((maxPrice - minPrice) / 2);
+
     return AspectRatio(
       aspectRatio: 1.7,
       child: Stack(
@@ -203,6 +217,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     show: true,
                     color: Colors.orange.withOpacity(0.3),
                   ),
+                ),
+                LineChartBarData(
+                  spots: _getUsdChartSpots(
+                    viewModel.priceHistory,
+                    dollarOffset,
+                  ),
+                  isCurved: true,
+                  color: Colors.blue,
+                  barWidth: 5,
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
                 ),
               ],
             ),
@@ -236,6 +261,30 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 8,
             child: Text(
               '\$${maxPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 8,
+            bottom: 8,
+            child: Text(
+              'R\$${minUsdPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Text(
+              'R\$${maxUsdPrice.toStringAsFixed(2)}',
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 10,
@@ -291,6 +340,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<FlSpot> spots = [];
     for (int i = 0; i < priceHistory.length; i++) {
       spots.add(FlSpot(i.toDouble(), priceHistory[i].price));
+    }
+    return spots;
+  }
+
+  List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory, double offSet) {
+    final List<FlSpot> spots = [];
+    for (int i = 0; i < priceHistory.length; i++) {
+      spots.add(FlSpot(i.toDouble(), priceHistory[i].dollarPrice + offSet));
     }
     return spots;
   }

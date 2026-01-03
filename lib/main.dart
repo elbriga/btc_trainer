@@ -112,7 +112,11 @@ void onStart(ServiceInstance service) async {
     print(">>>>>>>>>>>>> USD price: " + usdPrice.toString());
 
     final price = await fetchBtcPrice();
-    final priceData = PriceData(price: price, dollarPrice: usdPrice, timestamp: DateTime.now());
+    final priceData = PriceData(
+      price: price,
+      dollarPrice: usdPrice,
+      timestamp: DateTime.now(),
+    );
     await dbHelper.insertPrice(priceData);
 
     service.invoke('update', {
