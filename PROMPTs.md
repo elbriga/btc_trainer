@@ -32,3 +32,5 @@ Translate all the app to brazilian portuguese
 Move the buy and sell USD buttons to the bottom of the app, make to groups of buttons: one for USD and one for BTC buy and sell
 
 on the @home_screen add a preview text showing the value of BTC in BRL just after the USD preview
+
+Save the dollar price with the BTC price on the database in dbHelper.insertPrice() so we can graph it later

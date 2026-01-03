@@ -27,6 +27,7 @@ class DatabaseHelper {
       CREATE TABLE prices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         price REAL NOT NULL,
+        dollarPrice REAL NOT NULL,
         timestamp TEXT NOT NULL
       )
     ''');

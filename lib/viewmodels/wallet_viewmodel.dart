@@ -49,6 +49,7 @@ class WalletViewModel extends ChangeNotifier {
         if (event == null) return;
         final newPrice = PriceData(
           price: (event['current_price'] as num).toDouble(),
+          dollarPrice: (event['dollar_price'] as num).toDouble(),
           timestamp: DateTime.parse(event['timestamp']),
         );
         addNewPrice(newPrice);
