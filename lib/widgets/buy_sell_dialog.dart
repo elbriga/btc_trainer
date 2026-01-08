@@ -62,9 +62,7 @@ class _BuySellDialogState extends State<BuySellDialog> {
                 child: const Text('Total'),
                 onPressed: () {
                   setState(() {
-                    _controller.text = widget.balance.toStringAsFixed(
-                      widget.from == Currency.btc ? 8 : 2,
-                    );
+                    _controller.text = widget.balance.toString();
                     _controller.selection = TextSelection.fromPosition(
                       TextPosition(offset: _controller.text.length),
                     );
@@ -90,8 +88,7 @@ class _BuySellDialogState extends State<BuySellDialog> {
             } else {
               // Optional: Show an error message
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Valor inválido ou insuficiente')),
+                const SnackBar(content: Text('Valor inválido ou insuficiente')),
               );
             }
           },

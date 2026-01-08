@@ -27,8 +27,7 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
     final balanceText = widget.isBuy
         ? 'Saldo em BRL: R\$${widget.balance.toStringAsFixed(2)}'
         : 'Saldo em USD: \$${widget.balance.toStringAsFixed(2)}';
-    final hintText =
-        widget.isBuy ? 'Quantidade em BRL' : 'Quantidade em USD';
+    final hintText = widget.isBuy ? 'Quantidade em BRL' : 'Quantidade em USD';
 
     return AlertDialog(
       title: Text(title),
@@ -56,7 +55,7 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
                 child: const Text('Total'),
                 onPressed: () {
                   setState(() {
-                    _controller.text = widget.balance.toStringAsFixed(2);
+                    _controller.text = widget.balance.toString();
                     _controller.selection = TextSelection.fromPosition(
                       TextPosition(offset: _controller.text.length),
                     );
@@ -81,8 +80,7 @@ class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
               Navigator.of(context).pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Valor inválido ou insuficiente')),
+                const SnackBar(content: Text('Valor inválido ou insuficiente')),
               );
             }
           },
