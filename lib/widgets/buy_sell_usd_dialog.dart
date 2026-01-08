@@ -1,40 +1,33 @@
-import 'package:btc_trainer/models/currency.dart';
 import 'package:flutter/material.dart';
 
-class BuySellDialog extends StatefulWidget {
+class BuySellUsdDialog extends StatefulWidget {
   final bool isBuy;
   final Function(double) onSubmit;
   final double balance;
-  final double price;
-  final Currency from;
-  final Currency to;
+  final double usdBrlPrice;
 
-  const BuySellDialog({
+  const BuySellUsdDialog({
     super.key,
     required this.isBuy,
     required this.onSubmit,
     required this.balance,
-    required this.price,
-    required this.from,
-    required this.to,
+    required this.usdBrlPrice,
   });
 
   @override
-  _BuySellDialogState createState() => _BuySellDialogState();
+  _BuySellUsdDialogState createState() => _BuySellUsdDialogState();
 }
 
-class _BuySellDialogState extends State<BuySellDialog> {
+class _BuySellUsdDialogState extends State<BuySellUsdDialog> {
   final _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isBuy
-        ? 'Comprar ${widget.to.toString().split('.').last.toUpperCase()}'
-        : 'Vender ${widget.from.toString().split('.').last.toUpperCase()}';
-    final balanceText =
-        'Saldo em ${widget.from.toString().split('.').last.toUpperCase()}: ${widget.balance.toStringAsFixed(widget.from == Currency.btc ? 8 : 2)}';
-    final hintText =
-        'Quantidade em ${widget.from.toString().split('.').last.toUpperCase()}';
+    final title = widget.isBuy ? 'Comprar USD' : 'Vender USD';
+    final balanceText = widget.isBuy
+        ? 'Saldo em BRL: R\$${widget.balance.toStringAsFixed(2)}'
+        : 'Saldo em USD: \$${widget.balance.toStringAsFixed(2)}';
+    final hintText = widget.isBuy ? 'Quantidade em BRL' : 'Quantidade em USD';
 
     return AlertDialog(
       title: Text(title),
@@ -86,7 +79,6 @@ class _BuySellDialogState extends State<BuySellDialog> {
               widget.onSubmit(amount);
               Navigator.of(context).pop();
             } else {
-              // Optional: Show an error message
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Valor inválido ou insuficiente')),
               );

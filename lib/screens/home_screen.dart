@@ -1,3 +1,5 @@
+import 'package:btc_trainer/models/currency.dart';
+import 'package:btc_trainer/widgets/buy_sell_usd_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -35,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BTC Trainer'),
+        title: const Text('Simulador de BTC'),
         centerTitle: true,
         backgroundColor: Colors.orangeAccent,
       ),
@@ -45,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (viewModel.errorMessage != null) {
-            return Center(child: Text('Error: ${viewModel.errorMessage}'));
+            return Center(child: Text('Erro: ${viewModel.errorMessage}'));
           }
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -56,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildChart(context, viewModel),
                 const SizedBox(height: 24),
                 _buildTransactionHistory(context, viewModel),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 _buildActionButtons(context, viewModel),
               ],
             ),
@@ -74,7 +76,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Text(
-              'Live BTC Price: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
+              'Preço do BTC: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Preço do USD: R\$${viewModel.usdBrlPrice.toStringAsFixed(2)}',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -85,15 +94,23 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildBalanceItem(
                   context,
-                  'USD Balance',
+                  'Saldo em BRL',
+                  'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                ),
+                _buildBalanceItem(
+                  context,
+                  'Saldo em USD',
                   '\$${viewModel.usdBalance.toStringAsFixed(2)}',
                 ),
                 _buildBalanceItem(
                   context,
-                  'BTC Balance',
+                  'Saldo em BTC',
                   '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
                   usdEquivalent:
                       (viewModel.btcBalance * viewModel.currentBtcPrice),
+                  brlEquivalent:
+                      (viewModel.btcBalance * viewModel.currentBtcPrice) *
+                      viewModel.usdBrlPrice,
                 ),
               ],
             ),
@@ -108,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String title,
     String value, {
     double? usdEquivalent,
+    double? brlEquivalent,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +139,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         if (usdEquivalent != null)
           Text(
-            '(\$${usdEquivalent.toStringAsFixed(2)})',
+            '(\$ ${usdEquivalent.toStringAsFixed(2)})',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+        if (brlEquivalent != null)
+          Text(
+            '(R\$ ${brlEquivalent.toStringAsFixed(2)})',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
@@ -134,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (viewModel.priceHistory.isEmpty) {
       return const SizedBox(
         height: 150,
-        child: Center(child: Text("No price data yet.")),
+        child: Center(child: Text("Ainda não há dados de preço.")),
       );
     }
 
@@ -149,6 +174,20 @@ class _HomeScreenState extends State<HomeScreen> {
       minPrice = minPrice - 5;
       maxPrice = maxPrice + 5;
     }
+
+    double minUsdPrice = viewModel.priceHistory
+        .map((e) => e.dollarPrice)
+        .reduce((a, b) => a < b ? a : b);
+    double maxUsdPrice = viewModel.priceHistory
+        .map((e) => e.dollarPrice)
+        .reduce((a, b) => a > b ? a : b);
+
+    if (minUsdPrice == maxUsdPrice) {
+      minUsdPrice = minUsdPrice - 0.1;
+      maxUsdPrice = maxUsdPrice + 0.1;
+    }
+
+    double dollarOffset = minPrice + ((maxPrice - minPrice) / 2);
 
     return AspectRatio(
       aspectRatio: 1.7,
@@ -178,6 +217,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     show: true,
                     color: Colors.orange.withOpacity(0.3),
                   ),
+                ),
+                LineChartBarData(
+                  spots: _getUsdChartSpots(
+                    viewModel.priceHistory,
+                    dollarOffset,
+                  ),
+                  isCurved: true,
+                  color: Colors.blue,
+                  barWidth: 5,
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
                 ),
               ],
             ),
@@ -218,6 +268,30 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          Positioned(
+            right: 8,
+            bottom: 8,
+            child: Text(
+              'R\$${minUsdPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Text(
+              'R\$${maxUsdPrice.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -227,34 +301,36 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<ScatterSpot> spots = [];
 
     for (final transaction in viewModel.transactions) {
-      int closestIndex = -1;
-      Duration minDuration = const Duration(days: 999);
+      if (transaction.from == Currency.btc || transaction.to == Currency.btc) {
+        int closestIndex = -1;
+        Duration minDuration = const Duration(days: 999);
 
-      for (int i = 0; i < viewModel.priceHistory.length; i++) {
-        final duration = viewModel.priceHistory[i].timestamp
-            .difference(transaction.timestamp)
-            .abs();
-        if (duration < minDuration) {
-          minDuration = duration;
-          closestIndex = i;
+        for (int i = 0; i < viewModel.priceHistory.length; i++) {
+          final duration = viewModel.priceHistory[i].timestamp
+              .difference(transaction.timestamp)
+              .abs();
+          if (duration < minDuration) {
+            minDuration = duration;
+            closestIndex = i;
+          }
         }
-      }
 
-      if (closestIndex != -1) {
-        spots.add(
-          ScatterSpot(
-            closestIndex.toDouble(),
-            transaction.pricePerBtc,
-            dotPainter: FlDotCirclePainter(
-              radius: 6,
-              color: transaction.type == TransactionType.buy
-                  ? Colors.green
-                  : Colors.red,
-              strokeColor: Colors.white,
-              strokeWidth: 2,
+        if (closestIndex != -1) {
+          spots.add(
+            ScatterSpot(
+              closestIndex.toDouble(),
+              transaction.price,
+              dotPainter: FlDotCirclePainter(
+                radius: 6,
+                color: transaction.type == TransactionType.buy
+                    ? Colors.green
+                    : Colors.red,
+                strokeColor: Colors.white,
+                strokeWidth: 2,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     }
     return spots;
@@ -268,6 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return spots;
   }
 
+  List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory, double offSet) {
+    final List<FlSpot> spots = [];
+    for (int i = 0; i < priceHistory.length; i++) {
+      spots.add(FlSpot(i.toDouble(), priceHistory[i].dollarPrice + offSet));
+    }
+    return spots;
+  }
+
   Widget _buildTransactionHistory(
     BuildContext context,
     WalletViewModel viewModel,
@@ -277,24 +361,34 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Transaction History',
+            'Histórico de Transações',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Expanded(
             child: viewModel.transactions.isEmpty
-                ? const Center(child: Text('No transactions yet.'))
+                ? const Center(child: Text('Nenhuma transação ainda.'))
                 : ListView.builder(
                     itemCount: viewModel.transactions.length,
                     itemBuilder: (context, index) {
                       final transaction = viewModel.transactions[index];
                       final isBuy = transaction.type == TransactionType.buy;
+                      final String currencySymbol;
+                      final String totalCurrencySymbol;
+                      if (transaction.to == Currency.btc ||
+                          transaction.from == Currency.btc) {
+                        currencySymbol = 'BTC';
+                        totalCurrencySymbol = '\$';
+                      } else {
+                        currencySymbol = 'USD';
+                        totalCurrencySymbol = 'R\$';
+                      }
                       final title =
-                          '${isBuy ? 'Bought' : 'Sold'} ${transaction.btcAmount.toStringAsFixed(8)} BTC';
+                          '${isBuy ? 'Comprou' : 'Vendeu'} ${transaction.amount.toStringAsFixed(8)} $currencySymbol';
                       final subtitle =
-                          '@ \$${transaction.pricePerBtc.toStringAsFixed(2)} each\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
+                          '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} / cada\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
                       final total =
-                          'Total: \$${transaction.totalUsd.toStringAsFixed(2)}';
+                          'Total: $totalCurrencySymbol${(transaction.amount * transaction.price).toStringAsFixed(2)}';
 
                       return Card(
                         elevation: 2,
@@ -319,48 +413,109 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Column(
       children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_upward),
-          label: const Text('Buy'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellDialog(
-                isBuy: true,
-                onSubmit: (amount) => viewModel.buyBtc(amount),
-                balance: viewModel.usdBalance,
-                btcPrice: viewModel.currentBtcPrice,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_upward),
+              label: const Text('USD'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellUsdDialog(
+                    isBuy: true,
+                    onSubmit: (amount) => viewModel.buyUsd(amount),
+                    balance: viewModel.brlBalance,
+                    usdBrlPrice: viewModel.usdBrlPrice,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.arrow_downward),
-          label: const Text('Sell'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => BuySellDialog(
-                isBuy: false,
-                onSubmit: (amount) => viewModel.sellBtc(amount),
-                balance: viewModel.btcBalance,
-                btcPrice: viewModel.currentBtcPrice,
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_downward),
+              label: const Text('USD'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellUsdDialog(
+                    isBuy: false,
+                    onSubmit: (amount) => viewModel.sellUsd(amount),
+                    balance: viewModel.usdBalance,
+                    usdBrlPrice: viewModel.usdBrlPrice,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          ),
+            ),
+
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_upward),
+              label: const Text('BTC'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellDialog(
+                    isBuy: true,
+                    onSubmit: (amount) => viewModel.buyBtc(amount),
+                    balance: viewModel.usdBalance,
+                    price: viewModel.currentBtcPrice,
+                    from: Currency.usd,
+                    to: Currency.btc,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_downward),
+              label: const Text('BTC'),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BuySellDialog(
+                    isBuy: false,
+                    onSubmit: (amount) => viewModel.sellBtc(amount),
+                    balance: viewModel.btcBalance,
+                    price: viewModel.currentBtcPrice,
+                    from: Currency.btc,
+                    to: Currency.usd,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 15,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

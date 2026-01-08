@@ -27,6 +27,7 @@ class DatabaseHelper {
       CREATE TABLE prices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         price REAL NOT NULL,
+        dollarPrice REAL NOT NULL,
         timestamp TEXT NOT NULL
       )
     ''');
@@ -35,8 +36,10 @@ class DatabaseHelper {
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        btcAmount REAL NOT NULL,
-        pricePerBtc REAL NOT NULL,
+        `from` TEXT NOT NULL,
+        `to` TEXT NOT NULL,
+        amount REAL NOT NULL,
+        price REAL NOT NULL,
         timestamp TEXT NOT NULL
       )
     ''');

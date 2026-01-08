@@ -1,25 +1,31 @@
+import 'currency.dart';
+
 enum TransactionType { buy, sell }
 
 class TransactionData {
   final TransactionType type;
-  final double btcAmount;
-  final double pricePerBtc;
+  final Currency from;
+  final Currency to;
+  final double amount;
+  final double price;
   final DateTime timestamp;
 
   TransactionData({
     required this.type,
-    required this.btcAmount,
-    required this.pricePerBtc,
+    required this.from,
+    required this.to,
+    required this.amount,
+    required this.price,
     required this.timestamp,
   });
-
-  double get totalUsd => btcAmount * pricePerBtc;
 
   Map<String, dynamic> toMap() {
     return {
       'type': type.toString().split('.').last,
-      'btcAmount': btcAmount,
-      'pricePerBtc': pricePerBtc,
+      'from': from.toString().split('.').last,
+      'to': to.toString().split('.').last,
+      'amount': amount,
+      'price': price,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -29,8 +35,14 @@ class TransactionData {
       type: TransactionType.values.firstWhere(
         (e) => e.toString().split('.').last == map['type'],
       ),
-      btcAmount: map['btcAmount'],
-      pricePerBtc: map['pricePerBtc'],
+      from: Currency.values.firstWhere(
+        (e) => e.toString().split('.').last == map['from'],
+      ),
+      to: Currency.values.firstWhere(
+        (e) => e.toString().split('.').last == map['to'],
+      ),
+      amount: map['amount'],
+      price: map['price'],
       timestamp: DateTime.parse(map['timestamp']),
     );
   }
