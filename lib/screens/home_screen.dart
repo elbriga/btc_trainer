@@ -101,6 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   'Saldo em USD',
                   '\$${viewModel.usdBalance.toStringAsFixed(2)}',
+                  brlEquivalent:
+                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice),
                 ),
                 _buildBalanceItem(
                   context,
