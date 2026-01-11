@@ -347,7 +347,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory, double offSet) {
     final List<FlSpot> spots = [];
     for (int i = 0; i < priceHistory.length; i++) {
-      spots.add(FlSpot(i.toDouble(), priceHistory[i].dollarPrice + offSet));
+      double usdOfs = priceHistory[i].dollarPrice * 15;
+      usdOfs = (usdOfs - (usdOfs / 2)) + offSet;
+      spots.add(FlSpot(i.toDouble(), usdOfs));
     }
     return spots;
   }
