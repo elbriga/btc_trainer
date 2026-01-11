@@ -14,7 +14,7 @@ class WalletViewModel extends ChangeNotifier {
   double _brlBalance = 50000.00;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
-  double _usdBrlPrice = 0.0;
+
   List<PriceData> _priceHistory = [];
   List<TransactionData> _transactions = [];
   bool _isLoading = true;
@@ -23,13 +23,16 @@ class WalletViewModel extends ChangeNotifier {
   double get brlBalance => _brlBalance;
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
-  double get usdBrlPrice => _usdBrlPrice;
+
   List<PriceData> get priceHistory => _priceHistory;
   List<TransactionData> get transactions => _transactions;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
   double get currentBtcPrice =>
       _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
+  double get currentUsdBrlPrice =>
+      _priceHistory.isEmpty ? 0 : _priceHistory.last.dollarPrice;
 
   WalletViewModel() {
     _initialize();
@@ -40,7 +43,6 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _fetchUsdBrlPrice();
       _priceHistory = await dbHelper.getPrices();
       _transactions = await dbHelper.getTransactions();
       _recalculateBalances();
@@ -53,10 +55,6 @@ class WalletViewModel extends ChangeNotifier {
           timestamp: DateTime.parse(event['timestamp']),
         );
         addNewPrice(newPrice);
-      });
-
-      Timer.periodic(const Duration(minutes: 1), (timer) async {
-        await _fetchUsdBrlPrice();
       });
     } catch (e) {
       _errorMessage = e.toString();
@@ -73,7 +71,8 @@ class WalletViewModel extends ChangeNotifier {
 
     for (final transaction in _transactions.reversed) {
       if (transaction.type == TransactionType.buy) {
-        if (transaction.from == Currency.brl && transaction.to == Currency.usd) {
+        if (transaction.from == Currency.brl &&
+            transaction.to == Currency.usd) {
           brl -= transaction.amount * transaction.price;
           usd += transaction.amount;
         } else if (transaction.from == Currency.usd &&
@@ -82,7 +81,8 @@ class WalletViewModel extends ChangeNotifier {
           btc += transaction.amount;
         }
       } else if (transaction.type == TransactionType.sell) {
-        if (transaction.from == Currency.usd && transaction.to == Currency.brl) {
+        if (transaction.from == Currency.usd &&
+            transaction.to == Currency.brl) {
           usd -= transaction.amount;
           brl += transaction.amount * transaction.price;
         } else if (transaction.from == Currency.btc &&
@@ -105,19 +105,9 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _fetchUsdBrlPrice() async {
-    try {
-      _usdBrlPrice = await app_main.fetchUsdBrlPrice();
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
-    }
-  }
-
   Future<void> buyUsd(double brlAmount) async {
     if (brlAmount > 0 && brlAmount <= _brlBalance) {
-      final price = _usdBrlPrice;
+      final price = currentUsdBrlPrice;
       if (price == 0) return;
 
       final usdAmount = brlAmount / price;
@@ -139,7 +129,7 @@ class WalletViewModel extends ChangeNotifier {
 
   Future<void> sellUsd(double usdAmount) async {
     if (usdAmount > 0 && usdAmount <= _usdBalance) {
-      final price = _usdBrlPrice;
+      final price = currentUsdBrlPrice;
       if (price == 0) return;
 
       final transaction = TransactionData(
