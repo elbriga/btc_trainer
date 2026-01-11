@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Preço do USD: R\$${viewModel.usdBrlPrice.toStringAsFixed(2)}',
+              'Preço do USD: R\$${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       (viewModel.btcBalance * viewModel.currentBtcPrice),
                   brlEquivalent:
                       (viewModel.btcBalance * viewModel.currentBtcPrice) *
-                      viewModel.usdBrlPrice,
+                      viewModel.currentUsdBrlPrice,
                 ),
               ],
             ),
@@ -415,6 +415,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
+    bool btcEnable = viewModel.currentBtcPrice > 0;
+    bool usdEnable = viewModel.currentUsdBrlPrice > 0;
     return Column(
       children: [
         Row(
@@ -424,18 +426,19 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.arrow_upward),
               label: const Text('USD'),
               onPressed: () {
+                if (!usdEnable) return;
                 showDialog(
                   context: context,
                   builder: (_) => BuySellUsdDialog(
                     isBuy: true,
                     onSubmit: (amount) => viewModel.buyUsd(amount),
                     balance: viewModel.brlBalance,
-                    usdBrlPrice: viewModel.usdBrlPrice,
+                    usdBrlPrice: viewModel.currentUsdBrlPrice,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: usdEnable ? Colors.green : Colors.grey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
@@ -447,18 +450,19 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.arrow_downward),
               label: const Text('USD'),
               onPressed: () {
+                if (!usdEnable) return;
                 showDialog(
                   context: context,
                   builder: (_) => BuySellUsdDialog(
                     isBuy: false,
                     onSubmit: (amount) => viewModel.sellUsd(amount),
                     balance: viewModel.usdBalance,
-                    usdBrlPrice: viewModel.usdBrlPrice,
+                    usdBrlPrice: viewModel.currentUsdBrlPrice,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: usdEnable ? Colors.red : Colors.grey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
@@ -471,6 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.arrow_upward),
               label: const Text('BTC'),
               onPressed: () {
+                if (!btcEnable) return;
                 showDialog(
                   context: context,
                   builder: (_) => BuySellDialog(
@@ -484,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: btcEnable ? Colors.green : Colors.grey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
@@ -496,6 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.arrow_downward),
               label: const Text('BTC'),
               onPressed: () {
+                if (!btcEnable) return;
                 showDialog(
                   context: context,
                   builder: (_) => BuySellDialog(
@@ -509,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: btcEnable ? Colors.red : Colors.grey,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 15,
