@@ -1,5 +1,1 @@
-enum Currency {
-  brl,
-  usd,
-  btc,
-}
+enum Currency { brl, usd, btc, heaven }

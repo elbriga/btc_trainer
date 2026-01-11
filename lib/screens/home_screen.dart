@@ -19,6 +19,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _brlBalanceTapCount = 0;
+  DateTime? _lastBrlBalanceTap;
+
   @override
   void initState() {
     super.initState();
@@ -92,10 +95,37 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBalanceItem(
-                  context,
-                  'Saldo em BRL',
-                  'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                GestureDetector(
+                  onTap: () {
+                    final now = DateTime.now();
+                    if (_lastBrlBalanceTap != null &&
+                        now.difference(_lastBrlBalanceTap!) <
+                            const Duration(seconds: 1)) {
+                      _brlBalanceTapCount++;
+                    } else {
+                      _brlBalanceTapCount = 1;
+                    }
+                    _lastBrlBalanceTap = now;
+
+                    if (_brlBalanceTapCount >= 7) {
+                      viewModel.topUpBrlBalance();
+                      _brlBalanceTapCount = 0;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Saldo BRL recarregado para R\$50,000.00!',
+                          ),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: _buildBalanceItem(
+                    context,
+                    'Saldo em BRL',
+                    'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                  ),
                 ),
                 _buildBalanceItem(
                   context,
@@ -139,14 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        if (usdEquivalent != null)
+        if (usdEquivalent != null && usdEquivalent > 0)
           Text(
             '(\$ ${usdEquivalent.toStringAsFixed(2)})',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
           ),
-        if (brlEquivalent != null)
+        if (brlEquivalent != null && brlEquivalent > 0)
           Text(
             '(R\$ ${brlEquivalent.toStringAsFixed(2)})',
             style: Theme.of(
@@ -379,16 +409,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       final isBuy = transaction.type == TransactionType.buy;
                       final String currencySymbol;
                       final String totalCurrencySymbol;
-                      if (transaction.to == Currency.btc ||
-                          transaction.from == Currency.btc) {
+                      int decimal = 8;
+                      if (transaction.to == Currency.btc) {
                         currencySymbol = 'BTC';
                         totalCurrencySymbol = '\$';
-                      } else {
+                      } else if (transaction.to == Currency.usd) {
                         currencySymbol = 'USD';
+                        totalCurrencySymbol = '\$';
+                        decimal = 2;
+                      } else {
+                        currencySymbol = 'BRL';
                         totalCurrencySymbol = 'R\$';
+                        decimal = 2;
                       }
                       final title =
-                          '${isBuy ? 'Comprou' : 'Vendeu'} ${transaction.amount.toStringAsFixed(8)} $currencySymbol';
+                          '${transaction.from == Currency.heaven
+                              ? 'Ganhou'
+                              : isBuy
+                              ? 'Comprou'
+                              : 'Vendeu'} ${transaction.amount.toStringAsFixed(decimal)} $currencySymbol';
                       final subtitle =
                           '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} / cada\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
                       final total =
@@ -399,7 +438,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         child: ListTile(
                           leading: Icon(
-                            isBuy ? Icons.arrow_upward : Icons.arrow_downward,
+                            transaction.from == Currency.heaven
+                                ? Icons.cloud
+                                : isBuy
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
                             color: isBuy ? Colors.green : Colors.red,
                           ),
                           title: Text(title),

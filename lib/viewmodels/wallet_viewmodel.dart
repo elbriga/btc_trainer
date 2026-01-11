@@ -64,6 +64,23 @@ class WalletViewModel extends ChangeNotifier {
     }
   }
 
+  void topUpBrlBalance() async {
+    final brlAmount = 50000.00;
+    final transaction = TransactionData(
+      type: TransactionType.buy,
+      from: Currency.heaven,
+      to: Currency.brl,
+      amount: brlAmount,
+      price: 1.0,
+      timestamp: DateTime.now(),
+    );
+
+    await dbHelper.insertTransaction(transaction);
+    _transactions.insert(0, transaction);
+    _recalculateBalances();
+    notifyListeners();
+  }
+
   void _recalculateBalances() {
     double brl = 50000.00;
     double usd = 0.0;
@@ -71,7 +88,10 @@ class WalletViewModel extends ChangeNotifier {
 
     for (final transaction in _transactions.reversed) {
       if (transaction.type == TransactionType.buy) {
-        if (transaction.from == Currency.brl &&
+        if (transaction.from == Currency.heaven &&
+            transaction.to == Currency.brl) {
+          brl += transaction.amount;
+        } else if (transaction.from == Currency.brl &&
             transaction.to == Currency.usd) {
           brl -= transaction.amount * transaction.price;
           usd += transaction.amount;
