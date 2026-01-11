@@ -141,8 +141,8 @@ void onStart(ServiceInstance service) async {
     await dbHelper.insertPrice(priceData);
 
     service.invoke('update', {
-      "current_price": btcPrice,
-      "dollar_price": usdPrice,
+      "btcPrice": btcPrice,
+      "usdPrice": usdPrice,
       "timestamp": priceData.timestamp.toIso8601String(),
     });
   });

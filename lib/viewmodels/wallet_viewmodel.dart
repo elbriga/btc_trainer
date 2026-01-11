@@ -50,8 +50,8 @@ class WalletViewModel extends ChangeNotifier {
       FlutterBackgroundService().on('update').listen((event) {
         if (event == null) return;
         final newPrice = PriceData(
-          price: (event['current_price'] as num).toDouble(),
-          dollarPrice: (event['dollar_price'] as num).toDouble(),
+          price: (event['btcPrice'] as num).toDouble(),
+          dollarPrice: (event['usdPrice'] as num).toDouble(),
           timestamp: DateTime.parse(event['timestamp']),
         );
         addNewPrice(newPrice);
