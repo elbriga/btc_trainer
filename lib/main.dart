@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 
 import 'screens/home_screen.dart';
 import 'viewmodels/wallet_viewmodel.dart';
@@ -54,36 +53,40 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 }
 
 Future<double> fetchUsdBrlPrice() async {
+  http.Response response;
   try {
-    final response = await http.get(
+    response = await http.get(
       Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
     );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return double.tryParse(data['USDBRL']['high']) ?? 0.00;
-    } else {
-      throw Exception('Falha ao carregar o preço do USD-BRL');
-    }
   } catch (e) {
     throw Exception('Falha ao conectar ao servidor :: $e');
+  }
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    return double.tryParse(data['USDBRL']['high']) ?? 0.00;
+  } else {
+    throw Exception('Falha ao carregar o preço do USD-BRL');
   }
 }
 
 Future<double> fetchBtcPrice() async {
+  http.Response response;
   try {
-    final response = await http.get(
+    response = await http.get(
       Uri.parse(
         'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
       ),
     );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['bitcoin']['usd'].toDouble();
-    } else {
-      throw Exception('Falha ao carregar o preço do BTC');
-    }
   } catch (e) {
     throw Exception('Falha ao conectar ao servidor :: $e');
+  }
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    return data['bitcoin']['usd'].toDouble();
+  } else {
+    throw Exception('Falha ao carregar o preço do BTC');
   }
 }
 
@@ -106,21 +109,39 @@ void onStart(ServiceInstance service) async {
   });
 
   final dbHelper = DatabaseHelper.instance;
+  double btcPrice = 0.0;
+  double usdPrice = 0.0;
 
   Timer.periodic(const Duration(minutes: 1), (timer) async {
-    final usdPrice = await fetchUsdBrlPrice();
-    print(">>>>>>>>>>>>> USD price: " + usdPrice.toString());
+    double btc;
+    try {
+      btc = await fetchBtcPrice();
+    } catch (e) {
+      print('Erro BTC: $e');
+      if (btcPrice == 0.0) return; // Dont save if dont have value yet
+      btc = btcPrice; // Use old value
+    }
+    btcPrice = btc;
 
-    final price = await fetchBtcPrice();
+    double usd;
+    try {
+      usd = await fetchUsdBrlPrice();
+    } catch (e) {
+      print('Erro USD: $e');
+      if (usdPrice == 0.0) return; // Dont save if dont have value yet
+      usd = usdPrice; // Use old value
+    }
+    usdPrice = usd;
+
     final priceData = PriceData(
-      price: price,
+      price: btcPrice,
       dollarPrice: usdPrice,
       timestamp: DateTime.now(),
     );
     await dbHelper.insertPrice(priceData);
 
     service.invoke('update', {
-      "current_price": price,
+      "current_price": btcPrice,
       "dollar_price": usdPrice,
       "timestamp": priceData.timestamp.toIso8601String(),
     });
