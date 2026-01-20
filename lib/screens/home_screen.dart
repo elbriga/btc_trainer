@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _brlBalanceTapCount = 0;
+  double euTenhoBTC = 0.1;
   DateTime? _lastBrlBalanceTap;
 
   @override
@@ -125,6 +126,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     'Saldo em BRL',
                     'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                    brlEquivalent: // Quanto vale 0.1 BTC em reais
+                        (euTenhoBTC * viewModel.currentBtcPrice) *
+                        viewModel.currentUsdBrlPrice,
                   ),
                 ),
                 _buildBalanceItem(
