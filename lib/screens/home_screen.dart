@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Simulador de BTC'),
+        title: const Text('Simulador de Bitcoin'),
         centerTitle: true,
         backgroundColor: Colors.orangeAccent,
       ),
