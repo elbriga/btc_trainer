@@ -11,6 +11,7 @@ import '/screens/home_screen.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 import '/services/database_helper.dart';
 import '/models/price_data.dart';
+import '/theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -156,11 +157,8 @@ class BtcTrainerApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => WalletViewModel(),
       child: MaterialApp(
-        title: 'Simulador de BTC',
-        theme: ThemeData(
-          primarySwatch: Colors.orange,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
+        title: 'Simulador de Bitcoin',
+        theme: AppTheme.lightTheme,
         home: const HomeScreen(),
         debugShowCheckedModeBanner: false,
       ),
