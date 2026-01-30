@@ -223,8 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
       maxUsdPrice = maxUsdPrice + 0.1;
     }
 
-    double dollarOffset = minPrice + ((maxPrice - minPrice) / 2);
-
     return AspectRatio(
       aspectRatio: 1.7,
       child: Stack(
@@ -255,10 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 LineChartBarData(
-                  spots: _getUsdChartSpots(
-                    viewModel.priceHistory,
-                    dollarOffset,
-                  ),
+                  spots: _getUsdChartSpots(viewModel),
                   isCurved: true,
                   color: Colors.blue,
                   barWidth: 5,
@@ -380,13 +375,29 @@ class _HomeScreenState extends State<HomeScreen> {
     return spots;
   }
 
-  List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory, double offSet) {
+  List<FlSpot> _getUsdChartSpots(WalletViewModel viewModel) {
+    double minPrice = viewModel.priceHistory
+        .map((e) => e.price)
+        .reduce((a, b) => a < b ? a : b);
+    double maxPrice = viewModel.priceHistory
+        .map((e) => e.price)
+        .reduce((a, b) => a > b ? a : b);
+
+    if (minPrice == maxPrice) {
+      minPrice = minPrice - 5;
+      maxPrice = maxPrice + 5;
+    }
+
+    double range = maxPrice - minPrice;
+    double usdBtcRatio =
+        (minPrice + (range / 2)) / viewModel.currentUsdBrlPrice;
+
     final List<FlSpot> spots = [];
-    for (int i = 0; i < priceHistory.length; i++) {
-      double usdOfs = priceHistory[i].dollarPrice * 15;
-      usdOfs = (usdOfs - (usdOfs / 2)) + offSet;
+    for (int i = 0; i < viewModel.priceHistory.length; i++) {
+      double usdOfs = viewModel.priceHistory[i].dollarPrice * usdBtcRatio;
       spots.add(FlSpot(i.toDouble(), usdOfs));
     }
+
     return spots;
   }
 
