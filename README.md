@@ -1,16 +1,11 @@
-# btc_trainer
+# BTC Trainer - Simulador de Investimento em Bitcoin
 
-A new Flutter project.
+Bem-vindo ao BTC Trainer!
 
-## Getting Started
+Este é um aplicativo de simulação que permite que você aprenda a comprar e vender Bitcoin sem usar dinheiro de verdade. Acompanhe a cotação da criptomoeda em tempo real e treine suas habilidades de investimento de forma segura e divertida.
 
-This project is a starting point for a Flutter application.
+## Funcionalidade Mágica
 
-A few resources to get you started if this is your first Flutter project:
+O aplicativo tem um segredo: se você tocar 7 vezes no seu saldo em Reais (BRL), uma "mágica" acontece e você ganha R$ 50.000,00 para continuar treinando suas estratégias!
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Faça seus aportes!
