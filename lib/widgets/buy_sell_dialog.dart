@@ -20,10 +20,10 @@ class BuySellDialog extends StatefulWidget {
   });
 
   @override
-  _BuySellDialogState createState() => _BuySellDialogState();
+  BuySellDialogState createState() => BuySellDialogState();
 }
 
-class _BuySellDialogState extends State<BuySellDialog> {
+class BuySellDialogState extends State<BuySellDialog> {
   final _controller = TextEditingController();
 
   @override

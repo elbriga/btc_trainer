@@ -1,16 +1,16 @@
+import 'dart:ui';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
-import 'screens/home_screen.dart';
-import 'viewmodels/wallet_viewmodel.dart';
-import 'services/database_helper.dart';
-import 'models/price_data.dart';
+import '/screens/home_screen.dart';
+import '/viewmodels/wallet_viewmodel.dart';
+import '/services/database_helper.dart';
+import '/models/price_data.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

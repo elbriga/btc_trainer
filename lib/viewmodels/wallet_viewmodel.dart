@@ -1,12 +1,11 @@
 import 'dart:async';
-
-import 'package:btc_trainer/main.dart' as app_main;
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import '../models/currency.dart';
-import '../models/price_data.dart';
-import '../models/transaction_data.dart';
-import '../services/database_helper.dart';
+
+import '/models/currency.dart';
+import '/models/price_data.dart';
+import '/models/transaction_data.dart';
+import '/services/database_helper.dart';
 
 class WalletViewModel extends ChangeNotifier {
   final dbHelper = DatabaseHelper.instance;

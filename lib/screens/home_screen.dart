@@ -1,15 +1,16 @@
-import 'package:btc_trainer/models/currency.dart';
-import 'package:btc_trainer/widgets/buy_sell_usd_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
-import '../viewmodels/wallet_viewmodel.dart';
-import '../models/price_data.dart';
-import '../models/transaction_data.dart';
-import '../widgets/buy_sell_dialog.dart';
+import '/viewmodels/wallet_viewmodel.dart';
+import '/widgets/transaction_list.dart';
+import '/widgets/buy_sell_dialog.dart';
+import '/widgets/buy_sell_usd_dialog.dart';
+import '/models/price_data.dart';
+import '/models/transaction_data.dart';
+import '/models/currency.dart';
+import '/screens/transaction_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -409,66 +410,32 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Histórico de Transações',
-            style: Theme.of(context).textTheme.titleLarge,
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      TransactionHistoryScreen(viewModel.transactions),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Histórico de Transações',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 18),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 8),
-          Expanded(
-            child: viewModel.transactions.isEmpty
-                ? const Center(child: Text('Nenhuma transação ainda.'))
-                : ListView.builder(
-                    itemCount: viewModel.transactions.length,
-                    itemBuilder: (context, index) {
-                      final transaction = viewModel.transactions[index];
-                      final isBuy = transaction.type == TransactionType.buy;
-                      final String currencySymbol;
-                      final String totalCurrencySymbol;
-                      int decimal = 8;
-                      if (transaction.to == Currency.btc) {
-                        currencySymbol = 'BTC';
-                        totalCurrencySymbol = '\$';
-                      } else if (transaction.to == Currency.usd) {
-                        currencySymbol = 'USD';
-                        totalCurrencySymbol = '\$';
-                        decimal = 2;
-                      } else {
-                        currencySymbol = 'BRL';
-                        totalCurrencySymbol = 'R\$';
-                        decimal = 2;
-                      }
-                      final title =
-                          '${transaction.from == Currency.heaven
-                              ? 'Ganhou'
-                              : isBuy
-                              ? 'Comprou'
-                              : 'Vendeu'} ${transaction.amount.toStringAsFixed(decimal)} $currencySymbol';
-                      final subtitle =
-                          '@ $totalCurrencySymbol${transaction.price.toStringAsFixed(2)} / cada\n${DateFormat.yMd().add_jms().format(transaction.timestamp)}';
-                      final total =
-                          'Total: $totalCurrencySymbol${(transaction.amount * transaction.price).toStringAsFixed(2)}';
-
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: ListTile(
-                          leading: Icon(
-                            transaction.from == Currency.heaven
-                                ? Icons.cloud
-                                : isBuy
-                                ? Icons.arrow_upward
-                                : Icons.arrow_downward,
-                            color: isBuy ? Colors.green : Colors.red,
-                          ),
-                          title: Text(title),
-                          subtitle: Text(subtitle),
-                          trailing: Text(total),
-                          isThreeLine: true,
-                        ),
-                      );
-                    },
-                  ),
-          ),
+          TransactionList(viewModel.transactions),
         ],
       ),
     );
