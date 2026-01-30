@@ -1,4 +1,4 @@
-package com.example.btc_trainer
+package com.gsoftcreations.btc_trainer
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
