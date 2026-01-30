@@ -10,12 +10,19 @@ class AppTheme {
 
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          fontSize: 32,
+          fontSize: 26,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
         displayMedium: TextStyle(
-          fontSize: 28,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        displaySmall: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+
+        bodyMedium: TextStyle(
+          fontSize: 14,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),

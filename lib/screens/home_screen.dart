@@ -21,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _brlBalanceTapCount = 0;
-  double euTenhoBTC = 0.1;
   DateTime? _lastBrlBalanceTap;
 
   @override
@@ -74,6 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBalanceDisplay(BuildContext context, WalletViewModel viewModel) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    final priceBtcBrl =
+        viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -82,16 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               'Preço do BTC: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: textTheme.displayLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Preço em BRL: R\$ $priceBtcBrl',
+              style: textTheme.displaySmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Preço do USD: R\$${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              'Preço do USD: R\$ ${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
+              style: textTheme.displayMedium,
             ),
             const SizedBox(height: 16),
             Row(
@@ -127,9 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     'Saldo em BRL',
                     'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
-                    brlEquivalent: // Quanto vale 0.1 BTC em reais
-                        (euTenhoBTC * viewModel.currentBtcPrice) *
-                        viewModel.currentUsdBrlPrice,
                   ),
                 ),
                 _buildBalanceItem(
@@ -164,16 +166,13 @@ class _HomeScreenState extends State<HomeScreen> {
     double? usdEquivalent,
     double? brlEquivalent,
   }) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.bodySmall),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        Text(title, style: textTheme.bodySmall),
+        Text(value, style: textTheme.bodyMedium),
         if (usdEquivalent != null && usdEquivalent > 0)
           Text(
             '(\$ ${usdEquivalent.toStringAsFixed(2)})',
