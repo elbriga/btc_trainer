@@ -34,13 +34,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ElevatedButton(
               onPressed: () async {
                 final result = await FilePicker.platform.pickFiles();
-                if (result != null) {
+                if (result == null || result.files.single.path == null) return;
+
+                try {
                   await DatabaseHelper.instance.close();
 
                   final dbPath = await getDatabasesPath();
-                  final path = join(dbPath, 'btc_trainer.db');
-                  await File(path).delete();
-                  await File(result.files.single.path!).copy(path);
+                  final dbFile = File(join(dbPath, 'btc_trainer.db'));
+                  final backupFile =
+                      File(join(dbPath, 'btc_trainer.db.bak'));
+
+                  if (await dbFile.exists()) {
+                    await dbFile.rename(backupFile.path);
+                  }
+
+                  await File(result.files.single.path!).copy(dbFile.path);
+
+                  await DatabaseHelper.instance.database;
+
+                  if (await backupFile.exists()) {
+                    await backupFile.delete();
+                  }
 
                   if (mounted) {
                     await showDialog(
@@ -48,8 +62,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       builder: (context) => AlertDialog(
                         title: const Text('Database Restored'),
                         content: const Text(
-                          'Please restart the app to see the changes.',
-                        ),
+                            'The database was successfully restored.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  final dbPath = await getDatabasesPath();
+                  final dbFile = File(join(dbPath, 'btc_trainer.db'));
+                  final backupFile =
+                      File(join(dbPath, 'btc_trainer.db.bak'));
+
+                  if (await backupFile.exists()) {
+                    if (await dbFile.exists()) {
+                      await dbFile.delete();
+                    }
+                    await backupFile.rename(dbFile.path);
+                  }
+                  await DatabaseHelper.instance.database;
+
+                  if (mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Error restoring database'),
+                        content: const Text(
+                            'An error occurred during the restore process. The original database was restored.'),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
