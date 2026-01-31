@@ -26,6 +26,18 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
+
+        headlineLarge: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.warning,
+        ),
+
+        bodyLarge: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.goodjob,
+        ),
       ),
 
       appBarTheme: AppBarTheme(

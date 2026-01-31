@@ -7,4 +7,7 @@ class AppColors {
   // Text colors
   static const Color textPrimary = Color(0xFF2D2B55); // Dark blue/purple
   static const Color textSecondary = Color(0xFF666666);
+
+  static const Color warning = Color(0xFFFF3333);
+  static const Color goodjob = Color(0xFF00BB00);
 }

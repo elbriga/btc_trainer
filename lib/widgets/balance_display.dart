@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:btc_trainer/viewmodels/wallet_viewmodel.dart';
+import '/viewmodels/wallet_viewmodel.dart';
+import '/models/currency.dart';
 
 class BalanceDisplay extends StatefulWidget {
   final WalletViewModel viewModel;
@@ -54,6 +55,22 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
     final priceBtcBrl =
         viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
+
+    double quantoVeioDoCeu =
+        50000.0 +
+        viewModel.transactions
+            .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
+            .reduce((a, b) => a + b);
+
+    double result =
+        double.tryParse(
+          ((viewModel.brlBalance +
+                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
+                      (viewModel.btcBalance * priceBtcBrl)) -
+                  quantoVeioDoCeu)
+              .toStringAsFixed(2),
+        ) ??
+        0.0;
 
     return Card(
       elevation: 4,
@@ -129,6 +146,13 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                       viewModel.currentUsdBrlPrice,
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Resultado: R\$ ${result.toStringAsFixed(2)}',
+              style: (result > 0.0)
+                  ? textTheme.bodyLarge
+                  : textTheme.headlineLarge,
             ),
           ],
         ),
