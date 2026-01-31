@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -11,8 +13,7 @@ class DatabaseHelper {
   DatabaseHelper._init();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('btc_trainer.db');
+    _database ??= await _initDB('btc_trainer.db');
     return _database!;
   }
 
@@ -82,5 +83,48 @@ class DatabaseHelper {
     final db = await instance.database;
     db.close();
     _database = null;
+  }
+
+  Future restore(String newDbPath) async {
+    if (!await File(newDbPath).exists()) {
+      throw ('Erro com a nova base!');
+    }
+
+    await instance.close();
+
+    try {
+      final dbPath = await getDatabasesPath();
+      final dbFile = File(join(dbPath, 'btc_trainer.db'));
+      final backupFile = File(join(dbPath, 'btc_trainer.db.bak'));
+
+      if (await dbFile.exists()) {
+        await dbFile.rename(backupFile.path);
+      }
+
+      await File(newDbPath).copy(dbFile.path);
+
+      await instance.database;
+
+      if (await backupFile.exists()) {
+        await backupFile.delete();
+      }
+
+      // Wait a bit for the user to see the animation!
+      await Future.delayed(const Duration(milliseconds: 1500));
+    } catch (e) {
+      final dbPath = await getDatabasesPath();
+      final dbFile = File(join(dbPath, 'btc_trainer.db'));
+      final backupFile = File(join(dbPath, 'btc_trainer.db.bak'));
+
+      if (await backupFile.exists()) {
+        if (await dbFile.exists()) {
+          await dbFile.delete();
+        }
+        await backupFile.rename(dbFile.path);
+      }
+      await instance.database;
+
+      throw ('Erro ao restaurar a base!');
+    }
   }
 }
