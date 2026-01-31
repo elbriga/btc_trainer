@@ -11,6 +11,7 @@ import '/models/price_data.dart';
 import '/models/transaction_data.dart';
 import '/models/currency.dart';
 import '/screens/transaction_history_screen.dart';
+import '/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,11 +38,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _gotoScreen(Widget screen) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Simulador de Bitcoin'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurações',
+            onPressed: () => _gotoScreen(SettingsScreen()),
+          ),
+        ],
         centerTitle: true,
         backgroundColor: Colors.orangeAccent,
       ),
