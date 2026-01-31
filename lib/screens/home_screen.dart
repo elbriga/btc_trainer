@@ -65,18 +65,23 @@ class _HomeScreenState extends State<HomeScreen> {
           if (viewModel.errorMessage != null) {
             return Center(child: Text('Erro: ${viewModel.errorMessage}'));
           }
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildBalanceDisplay(context, viewModel),
-                const SizedBox(height: 24),
-                _buildChart(context, viewModel),
-                const SizedBox(height: 24),
-                _buildTransactionHistory(context, viewModel),
-                const SizedBox(height: 12),
-                _buildActionButtons(context, viewModel),
-              ],
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  _buildBalanceDisplay(context, viewModel),
+                  const SizedBox(height: 15),
+                  _buildChart(context, viewModel),
+                  const SizedBox(height: 10),
+                  _buildActionButtons(context, viewModel),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 220.0,
+                    child: _buildTransactionHistory(context, viewModel),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -110,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Preço do USD: R\$ ${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
               style: textTheme.displayMedium,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
