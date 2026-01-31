@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
-import '/widgets/transaction_list.dart';
 import '/widgets/balance_display.dart';
+import '/widgets/grafico.dart';
+import '/widgets/transaction_list.dart';
 import '/widgets/buy_sell_dialog.dart';
 import '/widgets/buy_sell_usd_dialog.dart';
-import '/models/price_data.dart';
-import '/models/transaction_data.dart';
 import '/models/currency.dart';
 import '/screens/transaction_history_screen.dart';
 import '/screens/settings_screen.dart';
@@ -70,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 spacing: 10,
                 children: [
                   BalanceDisplay(viewModel),
-                  _buildChart(context, viewModel),
+                  Grafico(viewModel),
                   _buildActionButtons(context, viewModel),
                   SizedBox(
                     height: 220.0,
@@ -83,216 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
-  }
-
-  Widget _buildChart(BuildContext context, WalletViewModel viewModel) {
-    if (viewModel.priceHistory.isEmpty) {
-      return const SizedBox(
-        height: 150,
-        child: Center(child: Text("Ainda não há dados de preço.")),
-      );
-    }
-
-    double minPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a < b ? a : b);
-    double maxPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a > b ? a : b);
-
-    if (minPrice == maxPrice) {
-      minPrice = minPrice - 5;
-      maxPrice = maxPrice + 5;
-    }
-
-    double minUsdPrice = viewModel.priceHistory
-        .map((e) => e.dollarPrice)
-        .reduce((a, b) => a < b ? a : b);
-    double maxUsdPrice = viewModel.priceHistory
-        .map((e) => e.dollarPrice)
-        .reduce((a, b) => a > b ? a : b);
-
-    if (minUsdPrice == maxUsdPrice) {
-      minUsdPrice = minUsdPrice - 0.1;
-      maxUsdPrice = maxUsdPrice + 0.1;
-    }
-
-    return AspectRatio(
-      aspectRatio: 1.7,
-      child: Stack(
-        children: [
-          LineChart(
-            LineChartData(
-              gridData: const FlGridData(show: false),
-              titlesData: const FlTitlesData(show: false),
-              borderData: FlBorderData(
-                show: true,
-                border: Border.all(color: const Color(0xff37434d), width: 1),
-              ),
-              minX: 0,
-              maxX: (viewModel.priceHistory.length - 1).toDouble(),
-              minY: minPrice,
-              maxY: maxPrice,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: _getChartSpots(viewModel.priceHistory),
-                  isCurved: true,
-                  color: Colors.orange,
-                  barWidth: 5,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.orange.withOpacity(0.3),
-                  ),
-                ),
-                LineChartBarData(
-                  spots: _getUsdChartSpots(viewModel),
-                  isCurved: true,
-                  color: Colors.blue,
-                  barWidth: 5,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                ),
-              ],
-            ),
-          ),
-          ScatterChart(
-            ScatterChartData(
-              scatterSpots: _generateTransactionSpots(viewModel),
-              minX: 0,
-              maxX: (viewModel.priceHistory.length - 1).toDouble(),
-              minY: minPrice,
-              maxY: maxPrice,
-              gridData: const FlGridData(show: false),
-              titlesData: const FlTitlesData(show: false),
-              borderData: FlBorderData(show: false),
-            ),
-          ),
-          Positioned(
-            left: 8,
-            bottom: 8,
-            child: Text(
-              '\$${minPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 8,
-            top: 8,
-            child: Text(
-              '\$${maxPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 8,
-            bottom: 8,
-            child: Text(
-              'R\$${minUsdPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Text(
-              'R\$${maxUsdPrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
-    final List<ScatterSpot> spots = [];
-
-    for (final transaction in viewModel.transactions) {
-      if (transaction.from == Currency.btc || transaction.to == Currency.btc) {
-        int closestIndex = -1;
-        Duration minDuration = const Duration(days: 999);
-
-        for (int i = 0; i < viewModel.priceHistory.length; i++) {
-          final duration = viewModel.priceHistory[i].timestamp
-              .difference(transaction.timestamp)
-              .abs();
-          if (duration < minDuration) {
-            minDuration = duration;
-            closestIndex = i;
-          }
-        }
-
-        if (closestIndex != -1) {
-          spots.add(
-            ScatterSpot(
-              closestIndex.toDouble(),
-              transaction.price,
-              dotPainter: FlDotCirclePainter(
-                radius: 6,
-                color: transaction.type == TransactionType.buy
-                    ? Colors.green
-                    : Colors.red,
-                strokeColor: Colors.white,
-                strokeWidth: 2,
-              ),
-            ),
-          );
-        }
-      }
-    }
-    return spots;
-  }
-
-  List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
-    final List<FlSpot> spots = [];
-    for (int i = 0; i < priceHistory.length; i++) {
-      spots.add(FlSpot(i.toDouble(), priceHistory[i].price));
-    }
-    return spots;
-  }
-
-  List<FlSpot> _getUsdChartSpots(WalletViewModel viewModel) {
-    double minPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a < b ? a : b);
-    double maxPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a > b ? a : b);
-
-    if (minPrice == maxPrice) {
-      minPrice = minPrice - 5;
-      maxPrice = maxPrice + 5;
-    }
-
-    double range = maxPrice - minPrice;
-    double usdBtcRatio =
-        (minPrice + (range / 2)) / viewModel.currentUsdBrlPrice;
-
-    final List<FlSpot> spots = [];
-    for (int i = 0; i < viewModel.priceHistory.length; i++) {
-      double usdOfs = viewModel.priceHistory[i].dollarPrice * usdBtcRatio;
-      spots.add(FlSpot(i.toDouble(), usdOfs));
-    }
-
-    return spots;
   }
 
   Widget _buildTransactionHistory(
