@@ -5,6 +5,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
 import '/widgets/transaction_list.dart';
+import '/widgets/balance_display.dart';
 import '/widgets/buy_sell_dialog.dart';
 import '/widgets/buy_sell_usd_dialog.dart';
 import '/models/price_data.dart';
@@ -21,9 +22,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _brlBalanceTapCount = 0;
-  DateTime? _lastBrlBalanceTap;
-
   @override
   void initState() {
     super.initState();
@@ -69,13 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                spacing: 10,
                 children: [
-                  _buildBalanceDisplay(context, viewModel),
-                  const SizedBox(height: 15),
+                  BalanceDisplay(viewModel),
                   _buildChart(context, viewModel),
-                  const SizedBox(height: 10),
                   _buildActionButtons(context, viewModel),
-                  const SizedBox(height: 10),
                   SizedBox(
                     height: 220.0,
                     child: _buildTransactionHistory(context, viewModel),
@@ -86,125 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildBalanceDisplay(BuildContext context, WalletViewModel viewModel) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    final priceBtcBrl =
-        viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
-
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(
-              'Preço do BTC: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
-              style: textTheme.displayLarge,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Preço em BRL: R\$ $priceBtcBrl',
-              style: textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Preço do USD: R\$ ${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
-              style: textTheme.displayMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    final now = DateTime.now();
-                    if (_lastBrlBalanceTap != null &&
-                        now.difference(_lastBrlBalanceTap!) <
-                            const Duration(seconds: 1)) {
-                      _brlBalanceTapCount++;
-                    } else {
-                      _brlBalanceTapCount = 1;
-                    }
-                    _lastBrlBalanceTap = now;
-
-                    if (_brlBalanceTapCount >= 7) {
-                      viewModel.topUpBrlBalance();
-                      _brlBalanceTapCount = 0;
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Saldo BRL recarregado para R\$50,000.00!',
-                          ),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: _buildBalanceItem(
-                    context,
-                    'Saldo em BRL',
-                    'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
-                  ),
-                ),
-                _buildBalanceItem(
-                  context,
-                  'Saldo em USD',
-                  '\$${viewModel.usdBalance.toStringAsFixed(2)}',
-                  brlEquivalent:
-                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice),
-                ),
-                _buildBalanceItem(
-                  context,
-                  'Saldo em BTC',
-                  '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
-                  usdEquivalent:
-                      (viewModel.btcBalance * viewModel.currentBtcPrice),
-                  brlEquivalent:
-                      (viewModel.btcBalance * viewModel.currentBtcPrice) *
-                      viewModel.currentUsdBrlPrice,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBalanceItem(
-    BuildContext context,
-    String title,
-    String value, {
-    double? usdEquivalent,
-    double? brlEquivalent,
-  }) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: textTheme.bodySmall),
-        Text(value, style: textTheme.bodyMedium),
-        if (usdEquivalent != null && usdEquivalent > 0)
-          Text(
-            '(\$ ${usdEquivalent.toStringAsFixed(2)})',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-          ),
-        if (brlEquivalent != null && brlEquivalent > 0)
-          Text(
-            '(R\$ ${brlEquivalent.toStringAsFixed(2)})',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-          ),
-      ],
     );
   }
 
