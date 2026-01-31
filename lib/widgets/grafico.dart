@@ -151,7 +151,7 @@ class GraficoState extends State<Grafico> {
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.orange.withOpacity(0.3),
+                    color: Colors.orange.withValues(alpha: 0.3),
                   ),
                 ),
                 LineChartBarData(

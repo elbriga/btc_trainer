@@ -123,6 +123,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
+    if (!viewModel.isUpdated) {
+      return Center(
+        child: Row(
+          spacing: 15,
+          children: [Text('Atualizando...'), CircularProgressIndicator()],
+        ),
+      );
+    }
+
     bool btcBuyEnable =
         viewModel.currentBtcPrice > 0 && viewModel.usdBalance > 0;
     bool btcSellEnable =

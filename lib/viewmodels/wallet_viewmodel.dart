@@ -13,6 +13,7 @@ class WalletViewModel extends ChangeNotifier {
   double _brlBalance = 50000.00;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
+  bool _updated = false;
 
   List<PriceData> _priceHistory = [];
   List<TransactionData> _transactions = [];
@@ -22,6 +23,7 @@ class WalletViewModel extends ChangeNotifier {
   double get brlBalance => _brlBalance;
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
+  bool get isUpdated => _updated;
 
   List<PriceData> get priceHistory => _priceHistory;
   List<TransactionData> get transactions => _transactions;
@@ -54,6 +56,8 @@ class WalletViewModel extends ChangeNotifier {
           timestamp: DateTime.parse(event['timestamp']),
         );
         addNewPrice(newPrice);
+
+        _updated = true;
       });
     } catch (e) {
       _errorMessage = e.toString();

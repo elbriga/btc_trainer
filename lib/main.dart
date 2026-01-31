@@ -113,12 +113,12 @@ void onStart(ServiceInstance service) async {
   double btcPrice = 0.0;
   double usdPrice = 0.0;
 
-  Timer.periodic(const Duration(minutes: 1), (timer) async {
+  void timerFunc(Timer? timer) async {
     double btc;
     try {
       btc = await fetchBtcPrice();
     } catch (e) {
-      print('Erro BTC: $e');
+      // print('Erro BTC: $e');
       if (btcPrice == 0.0) return; // Dont save if dont have value yet
       btc = btcPrice; // Use old value
     }
@@ -128,7 +128,7 @@ void onStart(ServiceInstance service) async {
     try {
       usd = await fetchUsdBrlPrice();
     } catch (e) {
-      print('Erro USD: $e');
+      // print('Erro USD: $e');
       if (usdPrice == 0.0) return; // Dont save if dont have value yet
       usd = usdPrice; // Use old value
     }
@@ -146,7 +146,10 @@ void onStart(ServiceInstance service) async {
       "usdPrice": usdPrice,
       "timestamp": priceData.timestamp.toIso8601String(),
     });
-  });
+  }
+
+  timerFunc(null);
+  Timer.periodic(const Duration(minutes: 1), timerFunc);
 }
 
 class BtcTrainerApp extends StatelessWidget {
