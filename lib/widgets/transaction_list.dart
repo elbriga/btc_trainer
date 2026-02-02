@@ -10,15 +10,13 @@ class TransactionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: transactions.isEmpty
-          ? const Center(child: Text('Nenhuma transação ainda.'))
-          : ListView.builder(
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                return TransactionCard(transactions[index]);
-              },
-            ),
-    );
+    return transactions.isEmpty
+        ? const Center(child: Text('Nenhuma transação ainda.'))
+        : ListView.builder(
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              return TransactionCard(transactions[index]);
+            },
+          );
   }
 }

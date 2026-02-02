@@ -87,38 +87,36 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     WalletViewModel viewModel,
   ) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      TransactionHistoryScreen(viewModel.transactions),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Histórico de Transações',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 18),
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    TransactionHistoryScreen(viewModel.transactions),
               ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Histórico de Transações',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 18),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          TransactionList(viewModel.transactions),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(child: TransactionList(viewModel.transactions)),
+      ],
     );
   }
 
