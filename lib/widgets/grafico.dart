@@ -16,6 +16,8 @@ class Grafico extends StatefulWidget {
 }
 
 class GraficoState extends State<Grafico> {
+  double? _minPrice, _maxPrice, _minUsdPrice, _maxUsdPrice;
+
   List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
     final List<ScatterSpot> spots = [];
 
@@ -64,21 +66,9 @@ class GraficoState extends State<Grafico> {
   }
 
   List<FlSpot> _getUsdChartSpots(WalletViewModel viewModel) {
-    double minPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a < b ? a : b);
-    double maxPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a > b ? a : b);
-
-    if (minPrice == maxPrice) {
-      minPrice = minPrice - 5;
-      maxPrice = maxPrice + 5;
-    }
-
-    double range = maxPrice - minPrice;
+    double range = _maxPrice! - _minPrice!;
     double usdBtcRatio =
-        (minPrice + (range / 2)) / viewModel.currentUsdBrlPrice;
+        (_minPrice! + (range / 2)) / viewModel.currentUsdBrlPrice;
 
     final List<FlSpot> spots = [];
     for (int i = 0; i < viewModel.priceHistory.length; i++) {
@@ -101,29 +91,29 @@ class GraficoState extends State<Grafico> {
       );
     }
 
-    double minPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a < b ? a : b);
-    double maxPrice = viewModel.priceHistory
-        .map((e) => e.price)
-        .reduce((a, b) => a > b ? a : b);
+    _minPrice = double.maxFinite;
+    _maxPrice = -double.maxFinite;
+    _minUsdPrice = double.maxFinite;
+    _maxUsdPrice = -double.maxFinite;
+    for (var p = 0; p < widget.viewModel.priceHistory.length; p++) {
+      var price = widget.viewModel.priceHistory[p].price;
+      if (price < _minPrice!) _minPrice = price;
+      if (price > _maxPrice!) _maxPrice = price;
 
-    if (minPrice == maxPrice) {
-      minPrice = minPrice - 5;
-      maxPrice = maxPrice + 5;
+      var usdPrice = widget.viewModel.priceHistory[p].dollarPrice;
+      if (usdPrice < _minUsdPrice!) _minUsdPrice = usdPrice;
+      if (usdPrice > _maxUsdPrice!) _maxUsdPrice = usdPrice;
+    }
+    if (_minPrice == _maxPrice) {
+      _minPrice = _minPrice! - 5;
+      _maxPrice = _maxPrice! + 5;
+    }
+    if (_minUsdPrice == _maxUsdPrice) {
+      _minUsdPrice = _minUsdPrice! - 0.1;
+      _maxUsdPrice = _maxUsdPrice! + 0.1;
     }
 
-    double minUsdPrice = viewModel.priceHistory
-        .map((e) => e.dollarPrice)
-        .reduce((a, b) => a < b ? a : b);
-    double maxUsdPrice = viewModel.priceHistory
-        .map((e) => e.dollarPrice)
-        .reduce((a, b) => a > b ? a : b);
-
-    if (minUsdPrice == maxUsdPrice) {
-      minUsdPrice = minUsdPrice - 0.1;
-      maxUsdPrice = maxUsdPrice + 0.1;
-    }
+    // TODO :: Gráfico do Resultado!
 
     return AspectRatio(
       aspectRatio: 1.7,
@@ -139,8 +129,8 @@ class GraficoState extends State<Grafico> {
               ),
               minX: 0,
               maxX: (viewModel.priceHistory.length - 1).toDouble(),
-              minY: minPrice,
-              maxY: maxPrice,
+              minY: _minPrice,
+              maxY: _maxPrice,
               lineBarsData: [
                 LineChartBarData(
                   spots: _getChartSpots(viewModel.priceHistory),
@@ -170,8 +160,8 @@ class GraficoState extends State<Grafico> {
               scatterSpots: _generateTransactionSpots(viewModel),
               minX: 0,
               maxX: (viewModel.priceHistory.length - 1).toDouble(),
-              minY: minPrice,
-              maxY: maxPrice,
+              minY: _minPrice,
+              maxY: _maxPrice,
               gridData: const FlGridData(show: false),
               titlesData: const FlTitlesData(show: false),
               borderData: FlBorderData(show: false),
@@ -181,7 +171,7 @@ class GraficoState extends State<Grafico> {
             left: 8,
             bottom: 8,
             child: Text(
-              '\$${minPrice.toStringAsFixed(2)}',
+              CurrencyFormat.usd(_minPrice!),
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 10,
@@ -193,7 +183,7 @@ class GraficoState extends State<Grafico> {
             left: 8,
             top: 8,
             child: Text(
-              '\$${maxPrice.toStringAsFixed(2)}',
+              CurrencyFormat.usd(_maxPrice!),
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 10,
@@ -205,7 +195,7 @@ class GraficoState extends State<Grafico> {
             right: 8,
             bottom: 8,
             child: Text(
-              'R\$${minUsdPrice.toStringAsFixed(2)}',
+              CurrencyFormat.brl(_minUsdPrice!),
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 10,
@@ -217,7 +207,7 @@ class GraficoState extends State<Grafico> {
             right: 8,
             top: 8,
             child: Text(
-              'R\$${maxUsdPrice.toStringAsFixed(2)}',
+              CurrencyFormat.brl(_maxUsdPrice!),
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 10,
