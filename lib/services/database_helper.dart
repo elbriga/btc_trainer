@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
+import '/models/currency.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -21,6 +22,30 @@ class DatabaseHelper {
     final path = join(dbPath, filePath);
 
     return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
+
+  void checkUpdateDB() async {
+    final db = await instance.database;
+
+    // Check for the 1st Transaction, should be from heaven!
+    final mapFirstTx = await db.query(
+      'transactions',
+      orderBy: 'timestamp ASC',
+      limit: 1,
+    );
+    var tx = TransactionData.fromMap(mapFirstTx.first);
+    if (tx.from != Currency.heaven) {
+      //print('===>>> Add 1st BRL R\$ 50k!');
+
+      // Yesterday
+      var new1stDate = DateTime(
+        tx.timestamp.year,
+        tx.timestamp.month,
+        tx.timestamp.day - 1,
+      );
+
+      await insertHeavenTransaction(new1stDate);
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -60,6 +85,22 @@ class DatabaseHelper {
     } else {
       return [];
     }
+  }
+
+  Future<TransactionData> insertHeavenTransaction(DateTime? dt) async {
+    final brlAmount = 50000.00;
+    final transaction = TransactionData(
+      type: TransactionType.buy,
+      from: Currency.heaven,
+      to: Currency.brl,
+      amount: brlAmount,
+      price: 1.0,
+      timestamp: dt ?? DateTime.now(),
+    );
+
+    await insertTransaction(transaction);
+
+    return transaction;
   }
 
   Future<void> insertTransaction(TransactionData transaction) async {

@@ -10,7 +10,7 @@ import '/services/database_helper.dart';
 class WalletViewModel extends ChangeNotifier {
   final dbHelper = DatabaseHelper.instance;
 
-  double _brlBalance = 50000.00;
+  double _brlBalance = 0.00;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
   bool _updated = false;
@@ -68,24 +68,14 @@ class WalletViewModel extends ChangeNotifier {
   }
 
   void topUpBrlBalance() async {
-    final brlAmount = 50000.00;
-    final transaction = TransactionData(
-      type: TransactionType.buy,
-      from: Currency.heaven,
-      to: Currency.brl,
-      amount: brlAmount,
-      price: 1.0,
-      timestamp: DateTime.now(),
-    );
-
-    await dbHelper.insertTransaction(transaction);
+    var transaction = await dbHelper.insertHeavenTransaction(null);
     _transactions.insert(0, transaction);
     _recalculateBalances();
     notifyListeners();
   }
 
   void _recalculateBalances() {
-    double brl = 50000.00;
+    double brl = 0.00;
     double usd = 0.0;
     double btc = 0.0;
 

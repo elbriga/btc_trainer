@@ -21,6 +21,9 @@ Future<void> main() async {
     }
   });
 
+  // Check for DB updates on start
+  DatabaseHelper.instance.checkUpdateDB();
+
   await initializeService();
   runApp(const BtcTrainerApp());
 }
@@ -146,6 +149,10 @@ void onStart(ServiceInstance service) async {
       "usdPrice": usdPrice,
       "timestamp": priceData.timestamp.toIso8601String(),
     });
+    // print('=====>>>>>');
+    // print('=====>>>>> New BTC $btcPrice');
+    // print('=====>>>>>');
+    // print('=====>>>>> New USD $usdPrice');
   }
 
   timerFunc(null);
