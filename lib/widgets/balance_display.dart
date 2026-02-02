@@ -29,14 +29,14 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         Text(value, style: textTheme.bodyMedium),
         if (usdEquivalent != null && usdEquivalent > 0)
           Text(
-            '(\$ ${usdEquivalent.toStringAsFixed(2)})',
+            '(${CurrencyFormat.usd(usdEquivalent)})',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
           ),
         if (brlEquivalent != null && brlEquivalent > 0)
           Text(
-            '(R\$ ${brlEquivalent.toStringAsFixed(2)})',
+            '(${CurrencyFormat.brl(brlEquivalent)})',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
@@ -120,17 +120,17 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         child: Column(
           children: [
             Text(
-              'Preço do BTC: \$${viewModel.currentBtcPrice.toStringAsFixed(2)}',
+              'Preço do BTC: ${CurrencyFormat.usd(viewModel.currentBtcPrice)}',
               style: textTheme.displayLarge,
             ),
             const SizedBox(height: 4),
             Text(
-              'Preço em BRL: R\$ ${priceBtcBrl.toStringAsFixed(2)}',
+              'Preço em BRL: ${CurrencyFormat.brl(priceBtcBrl)}',
               style: textTheme.displaySmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Preço do USD: R\$ ${viewModel.currentUsdBrlPrice.toStringAsFixed(2)}',
+              'Preço do USD: ${CurrencyFormat.brl(viewModel.currentUsdBrlPrice)}',
               style: textTheme.displayMedium,
             ),
             const SizedBox(height: 8),
@@ -140,19 +140,19 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                 _buildBalanceItem(
                   context,
                   'Saldo em BRL',
-                  'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
+                  CurrencyFormat.brl(viewModel.brlBalance),
                 ),
                 _buildBalanceItem(
                   context,
                   'Saldo em USD',
-                  '\$${viewModel.usdBalance.toStringAsFixed(2)}',
+                  CurrencyFormat.usd(viewModel.usdBalance),
                   brlEquivalent:
                       (viewModel.usdBalance * viewModel.currentUsdBrlPrice),
                 ),
                 _buildBalanceItem(
                   context,
                   'Saldo em BTC',
-                  '${viewModel.btcBalance.toStringAsFixed(8)} BTC',
+                  CurrencyFormat.btc(viewModel.btcBalance),
                   usdEquivalent:
                       (viewModel.btcBalance * viewModel.currentBtcPrice),
                   brlEquivalent:
@@ -169,7 +169,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                   children: [
                     Text('Resultado'),
                     Text(
-                      'R\$ ${result.toStringAsFixed(2)}',
+                      CurrencyFormat.brl(result),
                       style: (result > 0.0)
                           ? textTheme.bodyLarge
                           : textTheme.headlineLarge,
@@ -179,7 +179,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                 Column(
                   children: [
                     magicCloud,
-                    Text('R\$ ${quantoVeioDoCeu.toStringAsFixed(2)}'),
+                    Text(CurrencyFormat.brl(quantoVeioDoCeu)),
                   ],
                 ),
               ],

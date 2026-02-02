@@ -19,6 +19,12 @@ class TransactionData {
     required this.timestamp,
   });
 
+  String get name => from == Currency.heaven
+      ? 'Ganhou'
+      : type == TransactionType.buy
+      ? 'Comprou'
+      : 'Vendeu';
+
   Map<String, dynamic> toMap() {
     return {
       'type': type.toString().split('.').last,

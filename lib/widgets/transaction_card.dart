@@ -17,45 +17,32 @@ class TransactionCardState extends State<TransactionCard> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-
+    final transaction = widget.transaction;
     final isBuy = widget.transaction.type == TransactionType.buy;
-    final String currencySymbol;
-    final String totalCurrencySymbol;
 
-    int decimal = 8;
-    if (widget.transaction.to == Currency.btc) {
-      currencySymbol = 'BTC';
-      totalCurrencySymbol = '\$';
-    } else if (widget.transaction.to == Currency.usd) {
-      currencySymbol = 'USD';
-      totalCurrencySymbol = '\$';
-      decimal = 2;
-    } else {
-      currencySymbol = 'BRL';
-      totalCurrencySymbol = 'R\$';
-      decimal = 2;
-    }
-
-    final type = widget.transaction.from == Currency.heaven
-        ? 'Ganhou'
-        : isBuy
-        ? 'Comprou'
-        : 'Vendeu';
-    final amount = widget.transaction.amount.toStringAsFixed(decimal);
-    final title = '$type $amount $currencySymbol';
-
-    final price = widget.transaction.price.toStringAsFixed(2);
-    final date = DateFormat.yMd().add_jms().format(
-      widget.transaction.timestamp,
+    final String amount = CurrencyFormat.format(
+      transaction.amount,
+      transaction.to,
     );
-    final subtitle = '@ $totalCurrencySymbol $price / cada\n$date';
 
-    final totVal = (widget.transaction.amount * widget.transaction.price)
-        .toStringAsFixed(2);
-    final total = 'Total: $totalCurrencySymbol $totVal';
+    final String price = CurrencyFormat.format(
+      transaction.price,
+      transaction.from,
+    );
+
+    final String total = CurrencyFormat.format(
+      transaction.amount * transaction.price,
+      transaction.from,
+    );
+
+    final title = '${transaction.name} $amount';
+
+    // TODO :: data em pt_BR
+    final date = DateFormat.yMd().add_jms().format(transaction.timestamp);
+    final subtitle = '@ $price / cada\n$date';
 
     final icon = Icon(
-      widget.transaction.from == Currency.heaven
+      transaction.from == Currency.heaven
           ? Icons.cloud
           : isBuy
           ? Icons.arrow_upward
