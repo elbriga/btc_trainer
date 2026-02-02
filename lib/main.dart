@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -20,6 +21,8 @@ Future<void> main() async {
       Permission.notification.request();
     }
   });
+
+  await initializeDateFormatting('pt_BR', null);
 
   // Check for DB updates on start
   DatabaseHelper.instance.checkUpdateDB();

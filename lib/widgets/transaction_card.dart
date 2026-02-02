@@ -37,8 +37,11 @@ class TransactionCardState extends State<TransactionCard> {
 
     final title = '${transaction.name} $amount';
 
-    // TODO :: data em pt_BR
-    final date = DateFormat.yMd().add_jms().format(transaction.timestamp);
+    final date = DateFormat(
+      'dd/MM/yyyy HH:mm:ss',
+      'pt_BR',
+    ).format(transaction.timestamp);
+
     final subtitle = '@ $price / cada\n$date';
 
     final icon = Icon(
