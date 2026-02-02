@@ -14,9 +14,9 @@ class PricesBackgroundService {
 
   PricesBackgroundService(this.service);
 
-  void init() {
-    timerFunc(null);
-    _timer = Timer.periodic(const Duration(minutes: 1), timerFunc);
+  Future init() async {
+    await _fetchPrices(null);
+    _timer = Timer.periodic(const Duration(minutes: 1), _fetchPrices);
   }
 
   void shutdown() {
@@ -24,26 +24,38 @@ class PricesBackgroundService {
     _timer?.cancel();
   }
 
-  void timerFunc(Timer? timer) async {
-    double btc;
-    try {
-      btc = await fetchBtcPrice();
-    } catch (e) {
-      // print('Erro BTC: $e');
-      if (_currBtcPrice == 0.0) return; // Dont save if dont have value yet
-      btc = _currBtcPrice; // Use old value
-    }
-    _currBtcPrice = btc;
+  Future _fetchPrices(Timer? timer) async {
+    final results = await Future.wait([
+      (() async {
+        try {
+          return await fetchBtcPrice();
+        } catch (e) {
+          print('=================>>>>>>>>> Erro BTC: $e');
+          return _currBtcPrice == 0.0 ? null : _currBtcPrice;
+        }
+      })(),
+      (() async {
+        try {
+          return await fetchUsdBrlPrice();
+        } catch (e) {
+          print('=============>>>>>>>>>>> Erro USD: $e');
+          return _currUsdPrice == 0.0 ? null : _currUsdPrice;
+        }
+      })(),
+    ]);
 
-    double usd;
-    try {
-      usd = await fetchUsdBrlPrice();
-    } catch (e) {
-      // print('Erro USD: $e');
-      if (_currUsdPrice == 0.0) return; // Dont save if dont have value yet
-      usd = _currUsdPrice; // Use old value
+    final btc = results[0];
+    final usd = results[1];
+
+    if (btc != null) {
+      _currBtcPrice = btc;
     }
-    _currUsdPrice = usd;
+    if (usd != null) {
+      _currUsdPrice = usd;
+    }
+
+    print('=================>>>>>>>>> CURR BTC $_currBtcPrice');
+    print('=================>>>>>>>>> CURR USD $_currUsdPrice');
 
     final priceData = PriceData(
       price: _currBtcPrice,
@@ -59,13 +71,16 @@ class PricesBackgroundService {
   }
 
   Future<double> fetchUsdBrlPrice() async {
+    print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
+    print('==============>>>>>>>>>>>>>>>  fetchUsdPrice()');
+    print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
     http.Response response;
     try {
       response = await http.get(
         Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
       );
     } catch (e) {
-      throw Exception('Falha ao conectar ao servidor :: $e');
+      throw Exception('Falha ao conectar ao servidor USD :: $e');
     }
 
     if (response.statusCode == 200) {
@@ -77,6 +92,9 @@ class PricesBackgroundService {
   }
 
   Future<double> fetchBtcPrice() async {
+    print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
+    print('==============>>>>>>>>>>>>>>>  fetchBtcPrice()');
+    print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
     http.Response response;
     try {
       response = await http.get(
@@ -85,7 +103,7 @@ class PricesBackgroundService {
         ),
       );
     } catch (e) {
-      throw Exception('Falha ao conectar ao servidor :: $e');
+      throw Exception('Falha ao conectar ao servidor BTC :: $e');
     }
 
     if (response.statusCode == 200) {
