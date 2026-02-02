@@ -70,15 +70,45 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         0.0;
 
     var magicCloud = GestureDetector(
-      onDoubleTap: () {
-        viewModel.topUpBrlBalance();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ganhou mais R\$50,000.00 do céu!'),
-            duration: Duration(seconds: 3),
-          ),
+      onTap: () async {
+        final bool? confirm = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Confirmar Recarga'),
+              content: const Text(
+                'Deseja realmente adicionar R\$50.000,00 à sua carteira?',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // User canceled
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // User confirmed
+                  },
+                  child: const Text('Confirmar'),
+                ),
+              ],
+            );
+          },
         );
+
+        if (confirm == true) {
+          viewModel.topUpBrlBalance();
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ganhou mais R\$50,000.00 do céu!'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        }
       },
       child: Icon(Icons.cloud),
     );
