@@ -20,7 +20,7 @@ class PricesBackgroundService {
   }
 
   void shutdown() {
-    // TODO :: where to shut down this timer?
+    // Where to shut down this timer?
     _timer?.cancel();
   }
 
@@ -30,7 +30,7 @@ class PricesBackgroundService {
         try {
           return await fetchBtcPrice();
         } catch (e) {
-          print('=================>>>>>>>>> Erro BTC: $e');
+          // print('=================>>>>>>>>> Erro BTC: $e');
           return _currBtcPrice == 0.0 ? null : _currBtcPrice;
         }
       })(),
@@ -38,7 +38,7 @@ class PricesBackgroundService {
         try {
           return await fetchUsdBrlPrice();
         } catch (e) {
-          print('=============>>>>>>>>>>> Erro USD: $e');
+          // print('=============>>>>>>>>>>> Erro USD: $e');
           return _currUsdPrice == 0.0 ? null : _currUsdPrice;
         }
       })(),
@@ -54,8 +54,8 @@ class PricesBackgroundService {
       _currUsdPrice = usd;
     }
 
-    print('=================>>>>>>>>> CURR BTC $_currBtcPrice');
-    print('=================>>>>>>>>> CURR USD $_currUsdPrice');
+    // print('=================>>>>>>>>> CURR BTC $_currBtcPrice');
+    // print('=================>>>>>>>>> CURR USD $_currUsdPrice');
 
     final priceData = PriceData(
       price: _currBtcPrice,
@@ -71,9 +71,9 @@ class PricesBackgroundService {
   }
 
   Future<double> fetchUsdBrlPrice() async {
-    print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
-    print('==============>>>>>>>>>>>>>>>  fetchUsdPrice()');
-    print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
+    // print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
+    // print('==============>>>>>>>>>>>>>>>  fetchUsdPrice()');
+    // print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
     http.Response response;
     try {
       response = await http.get(
@@ -92,9 +92,9 @@ class PricesBackgroundService {
   }
 
   Future<double> fetchBtcPrice() async {
-    print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
-    print('==============>>>>>>>>>>>>>>>  fetchBtcPrice()');
-    print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
+    // print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
+    // print('==============>>>>>>>>>>>>>>>  fetchBtcPrice()');
+    // print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
     http.Response response;
     try {
       response = await http.get(
