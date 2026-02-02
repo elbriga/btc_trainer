@@ -6,6 +6,6 @@ Este é um aplicativo de simulação que permite que você aprenda a comprar e v
 
 ## Funcionalidade Mágica
 
-O aplicativo tem um segredo: se você tocar 7 vezes no seu saldo em Reais (BRL), uma "mágica" acontece e você ganha R$ 50.000,00 para continuar treinando suas estratégias!
+O aplicativo tem um segredo: se você tocar 2 na nuvem uma "mágica" acontece e você ganha R$ 50.000,00 para continuar treinando suas estratégias!
 
 Faça seus aportes!

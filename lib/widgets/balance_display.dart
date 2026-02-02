@@ -13,9 +13,6 @@ class BalanceDisplay extends StatefulWidget {
 }
 
 class BalanceDisplayState extends State<BalanceDisplay> {
-  int _brlBalanceTapCount = 0;
-  DateTime? _lastBrlBalanceTap;
-
   Widget _buildBalanceItem(
     BuildContext context,
     String title,
@@ -72,6 +69,20 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         ) ??
         0.0;
 
+    var magicCloud = GestureDetector(
+      onDoubleTap: () {
+        viewModel.topUpBrlBalance();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ganhou mais R\$50,000.00 do céu!'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      },
+      child: Icon(Icons.cloud),
+    );
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -84,7 +95,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Preço em BRL: R\$ $priceBtcBrl',
+              'Preço em BRL: R\$ ${priceBtcBrl.toStringAsFixed(2)}',
               style: textTheme.displaySmall,
             ),
             const SizedBox(height: 8),
@@ -96,37 +107,10 @@ class BalanceDisplayState extends State<BalanceDisplay> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    final now = DateTime.now();
-                    if (_lastBrlBalanceTap != null &&
-                        now.difference(_lastBrlBalanceTap!) <
-                            const Duration(seconds: 1)) {
-                      _brlBalanceTapCount++;
-                    } else {
-                      _brlBalanceTapCount = 1;
-                    }
-                    _lastBrlBalanceTap = now;
-
-                    if (_brlBalanceTapCount >= 7) {
-                      viewModel.topUpBrlBalance();
-                      _brlBalanceTapCount = 0;
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Saldo BRL recarregado para R\$50,000.00!',
-                          ),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: _buildBalanceItem(
-                    context,
-                    'Saldo em BRL',
-                    'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
-                  ),
+                _buildBalanceItem(
+                  context,
+                  'Saldo em BRL',
+                  'R\$${viewModel.brlBalance.toStringAsFixed(2)}',
                 ),
                 _buildBalanceItem(
                   context,
@@ -147,12 +131,28 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Resultado: R\$ ${result.toStringAsFixed(2)}',
-              style: (result > 0.0)
-                  ? textTheme.bodyLarge
-                  : textTheme.headlineLarge,
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text('Resultado'),
+                    Text(
+                      'R\$ ${result.toStringAsFixed(2)}',
+                      style: (result > 0.0)
+                          ? textTheme.bodyLarge
+                          : textTheme.headlineLarge,
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    magicCloud,
+                    Text('R\$ ${quantoVeioDoCeu.toStringAsFixed(2)}'),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
