@@ -114,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
         Expanded(child: TransactionList(viewModel.transactions)),
       ],
     );
