@@ -53,20 +53,20 @@ class BalanceDisplayState extends State<BalanceDisplay> {
     final WalletViewModel viewModel = widget.viewModel;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final priceBtcBrl =
-        viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
+    final priceBtcBrl = double.tryParse(
+      (viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice)
+          .toStringAsFixed(2),
+    );
 
-    double quantoVeioDoCeu =
-        50000.0 +
-        viewModel.transactions
-            .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
-            .reduce((a, b) => a + b);
+    double quantoVeioDoCeu = viewModel.transactions
+        .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
+        .reduce((a, b) => a + b);
 
     double result =
         double.tryParse(
           ((viewModel.brlBalance +
                       (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
-                      (viewModel.btcBalance * priceBtcBrl)) -
+                      (viewModel.btcBalance * priceBtcBrl!)) -
                   quantoVeioDoCeu)
               .toStringAsFixed(2),
         ) ??
