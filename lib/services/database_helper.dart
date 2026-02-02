@@ -33,16 +33,19 @@ class DatabaseHelper {
       orderBy: 'timestamp ASC',
       limit: 1,
     );
-    var tx = TransactionData.fromMap(mapFirstTx.first);
-    if (tx.from != Currency.heaven) {
+    var tx = mapFirstTx.isEmpty
+        ? null
+        : TransactionData.fromMap(mapFirstTx.first);
+    if (tx == null || tx.from != Currency.heaven) {
       //print('===>>> Add 1st BRL R\$ 50k!');
 
-      // Yesterday
-      var new1stDate = DateTime(
-        tx.timestamp.year,
-        tx.timestamp.month,
-        tx.timestamp.day - 1,
-      );
+      var new1stDate = tx == null
+          ? DateTime.now()
+          : DateTime(
+              tx.timestamp.year,
+              tx.timestamp.month,
+              tx.timestamp.day - 1, // Yesterday
+            );
 
       await insertHeavenTransaction(new1stDate);
     }
