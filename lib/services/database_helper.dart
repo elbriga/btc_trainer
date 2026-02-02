@@ -24,7 +24,7 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  void checkUpdateDB() async {
+  Future checkUpdateDB() async {
     final db = await instance.database;
 
     // Check for the 1st Transaction, should be from heaven!

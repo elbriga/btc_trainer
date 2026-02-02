@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'dart:async';
-import 'dart:convert';
+import 'package:btc_trainer/services/background_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import '/screens/home_screen.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 import '/services/database_helper.dart';
-import '/models/price_data.dart';
 import '/theme/theme.dart';
 
 Future<void> main() async {
@@ -25,13 +23,14 @@ Future<void> main() async {
   await initializeDateFormatting('pt_BR', null);
 
   // Check for DB updates on start
-  DatabaseHelper.instance.checkUpdateDB();
+  await DatabaseHelper.instance.checkUpdateDB();
 
-  await initializeService();
+  await initializePricesService();
+
   runApp(const BtcTrainerApp());
 }
 
-Future<void> initializeService() async {
+Future<void> initializePricesService() async {
   final service = FlutterBackgroundService();
 
   await service.configure(
@@ -59,44 +58,6 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   return true;
 }
 
-Future<double> fetchUsdBrlPrice() async {
-  http.Response response;
-  try {
-    response = await http.get(
-      Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
-    );
-  } catch (e) {
-    throw Exception('Falha ao conectar ao servidor :: $e');
-  }
-
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    return double.tryParse(data['USDBRL']['high']) ?? 0.00;
-  } else {
-    throw Exception('Falha ao carregar o preço do USD-BRL');
-  }
-}
-
-Future<double> fetchBtcPrice() async {
-  http.Response response;
-  try {
-    response = await http.get(
-      Uri.parse(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-      ),
-    );
-  } catch (e) {
-    throw Exception('Falha ao conectar ao servidor :: $e');
-  }
-
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    return data['bitcoin']['usd'].toDouble();
-  } else {
-    throw Exception('Falha ao carregar o preço do BTC');
-  }
-}
-
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
@@ -115,45 +76,7 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  double btcPrice = 0.0;
-  double usdPrice = 0.0;
-  // TODO :: to class
-  void timerFunc(Timer? timer) async {
-    double btc;
-    try {
-      btc = await fetchBtcPrice();
-    } catch (e) {
-      // print('Erro BTC: $e');
-      if (btcPrice == 0.0) return; // Dont save if dont have value yet
-      btc = btcPrice; // Use old value
-    }
-    btcPrice = btc;
-
-    double usd;
-    try {
-      usd = await fetchUsdBrlPrice();
-    } catch (e) {
-      // print('Erro USD: $e');
-      if (usdPrice == 0.0) return; // Dont save if dont have value yet
-      usd = usdPrice; // Use old value
-    }
-    usdPrice = usd;
-
-    final priceData = PriceData(
-      price: btcPrice,
-      dollarPrice: usdPrice,
-      timestamp: DateTime.now(),
-    );
-
-    service.invoke('update', {
-      "btcPrice": btcPrice,
-      "usdPrice": usdPrice,
-      "timestamp": priceData.timestamp.toIso8601String(),
-    });
-  }
-
-  timerFunc(null);
-  Timer.periodic(const Duration(minutes: 1), timerFunc);
+  PricesBackgroundService(service).init();
 }
 
 class BtcTrainerApp extends StatelessWidget {

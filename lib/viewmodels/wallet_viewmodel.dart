@@ -57,8 +57,8 @@ class WalletViewModel extends ChangeNotifier {
           timestamp: DateTime.parse(event['timestamp']),
         );
 
-        print('=====>>>>>');
-        print('=====>>>>> New Prices! ${newPrice.toMap()}');
+        print('=====>>>>> New Prices!');
+        print('=====>>>>> ${newPrice.toMap()}');
 
         await addNewPrice(newPrice);
 
