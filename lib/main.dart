@@ -115,10 +115,9 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  final dbHelper = DatabaseHelper.instance;
   double btcPrice = 0.0;
   double usdPrice = 0.0;
-
+  // TODO :: to class
   void timerFunc(Timer? timer) async {
     double btc;
     try {
@@ -145,17 +144,12 @@ void onStart(ServiceInstance service) async {
       dollarPrice: usdPrice,
       timestamp: DateTime.now(),
     );
-    await dbHelper.insertPrice(priceData);
 
     service.invoke('update', {
       "btcPrice": btcPrice,
       "usdPrice": usdPrice,
       "timestamp": priceData.timestamp.toIso8601String(),
     });
-    // print('=====>>>>>');
-    // print('=====>>>>> New BTC $btcPrice');
-    // print('=====>>>>>');
-    // print('=====>>>>> New USD $usdPrice');
   }
 
   timerFunc(null);

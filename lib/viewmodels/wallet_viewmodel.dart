@@ -48,14 +48,19 @@ class WalletViewModel extends ChangeNotifier {
       _transactions = await dbHelper.getTransactions();
       _recalculateBalances();
 
-      FlutterBackgroundService().on('update').listen((event) {
+      FlutterBackgroundService().on('update').listen((event) async {
         if (event == null) return;
+
         final newPrice = PriceData(
           price: (event['btcPrice'] as num).toDouble(),
           dollarPrice: (event['usdPrice'] as num).toDouble(),
           timestamp: DateTime.parse(event['timestamp']),
         );
-        addNewPrice(newPrice);
+
+        print('=====>>>>>');
+        print('=====>>>>> New Prices! ${newPrice.toMap()}');
+
+        await addNewPrice(newPrice);
 
         _updated = true;
       });
@@ -110,7 +115,9 @@ class WalletViewModel extends ChangeNotifier {
     _btcBalance = btc;
   }
 
-  void addNewPrice(PriceData newPrice) {
+  Future addNewPrice(PriceData newPrice) async {
+    await dbHelper.insertPrice(newPrice);
+
     _priceHistory.add(newPrice);
     if (_priceHistory.length > 100) {
       _priceHistory.removeAt(0);
