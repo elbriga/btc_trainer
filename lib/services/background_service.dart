@@ -7,6 +7,7 @@ import '/models/price_data.dart';
 
 class PricesBackgroundService {
   ServiceInstance service;
+  Timer? _timer;
 
   double _currBtcPrice = 0.0;
   double _currUsdPrice = 0.0;
@@ -15,8 +16,12 @@ class PricesBackgroundService {
 
   void init() {
     timerFunc(null);
-    Timer.periodic(const Duration(minutes: 1), timerFunc);
+    _timer = Timer.periodic(const Duration(minutes: 1), timerFunc);
+  }
+
+  void shutdown() {
     // TODO :: where to shut down this timer?
+    _timer?.cancel();
   }
 
   void timerFunc(Timer? timer) async {
