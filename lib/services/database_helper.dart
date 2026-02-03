@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
 import '/models/currency.dart';
@@ -25,6 +27,11 @@ class DatabaseHelper {
   }
 
   Future checkUpdateDB() async {
+    _check1stFromHeaven();
+    // _consolidate();
+  }
+
+  Future _check1stFromHeaven() async {
     final db = await instance.database;
 
     // Check for the 1st Transaction, should be from heaven!
@@ -126,6 +133,64 @@ class DatabaseHelper {
     final db = await instance.database;
     db.close();
     _database = null;
+  }
+
+  // Group the minutes of the same hour => / 60
+  Future _consolidate() async {
+    final db = await instance.database;
+    final prefs = await SharedPreferences.getInstance();
+    final lastConsolidatedDateString = prefs.getString(
+      'last_consolidation_date',
+    );
+
+    // We'll consolidate entries older than today to avoid
+    // consolidating data that is still being collected.
+    final now = DateTime.now();
+    final consolidationCutOff = DateTime(now.year, now.month, now.day);
+    final consolidationCutOffString = consolidationCutOff.toIso8601String();
+
+    String whereClause = 'timestamp < ?';
+    List<String> whereArgs = [consolidationCutOffString];
+
+    if (lastConsolidatedDateString != null) {
+      whereClause = 'timestamp >= ? AND timestamp < ?';
+      whereArgs = [lastConsolidatedDateString, consolidationCutOffString];
+    }
+
+    final consolidatedPrices = await db.rawQuery('''
+      SELECT
+        AVG(price) as price,
+        AVG(dollarPrice) as dollarPrice,
+        strftime('%Y-%m-%d %H:00:00.000', timestamp) as timestamp
+      FROM prices
+      WHERE $whereClause
+      GROUP BY strftime('%Y-%m-%d %H', timestamp)
+    ''', whereArgs);
+
+    if (consolidatedPrices.isEmpty) {
+      return;
+    }
+
+    var prices = await getPrices();
+    print('------------===========>> Prices before: ${prices.length}');
+
+    await db.transaction((txn) async {
+      // Delete the old, minutely entries
+      await txn.delete('prices', where: whereClause, whereArgs: whereArgs);
+
+      // Insert the new, hourly-averaged entries
+      final batch = txn.batch();
+      for (var price in consolidatedPrices) {
+        batch.insert('prices', price);
+      }
+      await batch.commit(noResult: true);
+    });
+
+    prices = await getPrices();
+    print('------------===========>> Prices after: ${prices.length}');
+
+    // save last consolidated point for the next run
+    await prefs.setString('last_consolidation_date', consolidationCutOffString);
   }
 
   Future restore(String newDbPath) async {
