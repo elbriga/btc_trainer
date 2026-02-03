@@ -57,6 +57,11 @@ class WalletViewModel extends ChangeNotifier {
           timestamp: DateTime.parse(event['timestamp']),
         );
 
+        if (newPrice.price <= 0.0 || newPrice.dollarPrice <= 0.0) {
+          print('Erro no Update!');
+          return;
+        }
+
         // print('=====>> New Prices!');
         // print('=====>>>>> ${newPrice.toMap()}');
 

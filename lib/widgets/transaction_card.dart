@@ -18,7 +18,7 @@ class TransactionCardState extends State<TransactionCard> {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final transaction = widget.transaction;
-    final isBuy = widget.transaction.type == TransactionType.buy;
+    final isBuy = transaction.type == TransactionType.buy;
 
     final String amount = CurrencyFormat.format(
       transaction.amount,
