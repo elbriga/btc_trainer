@@ -26,9 +26,16 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
+  // Called on app start
   Future checkUpdateDB() async {
     _check1stFromHeaven();
+    _fixZeroes();
     // _consolidate();
+  }
+
+  Future _fixZeroes() async {
+    final db = await instance.database;
+    db.rawQuery('DELETE FROM prices WHERE price = 0 OR dollarPrice = 0');
   }
 
   Future _check1stFromHeaven() async {
