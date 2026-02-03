@@ -15,6 +15,22 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _processing = false;
+  int _totPrices = 0;
+  int _totTxs = 0;
+
+  _SettingsScreenState() {
+    _loadData();
+  }
+
+  void _loadData() async {
+    var prices = await DatabaseHelper.instance.getPrices();
+    var txs = await DatabaseHelper.instance.getTransactions();
+
+    setState(() {
+      _totPrices = prices.length;
+      _totTxs = txs.length;
+    });
+  }
 
   Future _backup() async {
     final dbPath = await getDatabasesPath();
@@ -72,6 +88,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onPressed: () => _restore(context),
                         child: const Text('Restore Database'),
                       ),
+                      Text('Cotações na base: $_totPrices'),
+                      Text('Transações na base: $_totTxs'),
                     ],
                   ),
           ),
