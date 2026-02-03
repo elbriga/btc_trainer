@@ -28,31 +28,24 @@ class PricesBackgroundService {
     final results = await Future.wait([
       (() async {
         try {
-          return await fetchBtcPrice();
+          return await _fetchBtcPrice();
         } catch (e) {
-          // print('=================>>>>>>>>> Erro BTC: $e');
-          return _currBtcPrice == 0.0 ? null : _currBtcPrice;
+          print('=================>>>>>>>>> Erro BTC: $e');
+          return _currBtcPrice;
         }
       })(),
       (() async {
         try {
-          return await fetchUsdBrlPrice();
+          return await _fetchUsdBrlPrice();
         } catch (e) {
-          // print('=============>>>>>>>>>>> Erro USD: $e');
-          return _currUsdPrice == 0.0 ? null : _currUsdPrice;
+          print('=============>>>>>>>>>>> Erro USD: $e');
+          return _currUsdPrice;
         }
       })(),
     ]);
 
-    final btc = results[0];
-    final usd = results[1];
-
-    if (btc != null) {
-      _currBtcPrice = btc;
-    }
-    if (usd != null) {
-      _currUsdPrice = usd;
-    }
+    _currBtcPrice = results[0];
+    _currUsdPrice = results[1];
 
     // print('=================>>>>>>>>> CURR BTC $_currBtcPrice');
     // print('=================>>>>>>>>> CURR USD $_currUsdPrice');
@@ -70,18 +63,26 @@ class PricesBackgroundService {
     });
   }
 
-  Future<double> fetchUsdBrlPrice() async {
+  Future<http.Response> _fetchHttp(String url) async {
+    int retries = 3;
+    while (retries > 0) {
+      try {
+        http.Response response = await http.get(Uri.parse(url));
+        return response;
+      } catch (_) {}
+      retries--;
+      await Future.delayed(Duration(seconds: 2));
+    }
+    throw Exception('Falha _fetchHttp($url)');
+  }
+
+  Future<double> _fetchUsdBrlPrice() async {
     // print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
     // print('==============>>>>>>>>>>>>>>>  fetchUsdPrice()');
     // print('==============>>>>>>>>>>>>>>>> fetchUsdPrice()');
-    http.Response response;
-    try {
-      response = await http.get(
-        Uri.parse('https://economia.awesomeapi.com.br/json/last/USD-BRL'),
-      );
-    } catch (e) {
-      throw Exception('Falha ao conectar ao servidor USD :: $e');
-    }
+    http.Response response = await _fetchHttp(
+      'https://economia.awesomeapi.com.br/json/last/USD-BRL',
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -91,20 +92,13 @@ class PricesBackgroundService {
     }
   }
 
-  Future<double> fetchBtcPrice() async {
+  Future<double> _fetchBtcPrice() async {
     // print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
     // print('==============>>>>>>>>>>>>>>>  fetchBtcPrice()');
     // print('==============>>>>>>>>>>>>>>>> fetchBtcPrice()');
-    http.Response response;
-    try {
-      response = await http.get(
-        Uri.parse(
-          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-        ),
-      );
-    } catch (e) {
-      throw Exception('Falha ao conectar ao servidor BTC :: $e');
-    }
+    http.Response response = await _fetchHttp(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
