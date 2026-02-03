@@ -124,7 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return Center(
         child: Row(
           spacing: 15,
-          children: [Text('Atualizando...'), CircularProgressIndicator()],
+          children: [
+            Expanded(child: Text('Buscando Cotações...')),
+            CircularProgressIndicator(),
+          ],
         ),
       );
     }
