@@ -119,9 +119,10 @@ class WalletViewModel extends ChangeNotifier {
     await dbHelper.insertPrice(newPrice);
 
     _priceHistory.add(newPrice);
-    if (_priceHistory.length > 100) {
-      _priceHistory.removeAt(0);
-    }
+    // TODO : How to limit?
+    // if (_priceHistory.length > 100) {
+    //   _priceHistory.removeAt(0);
+    // }
     notifyListeners();
   }
 
