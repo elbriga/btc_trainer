@@ -206,7 +206,7 @@ class DatabaseHelper {
     await prefs.setString('last_consolidation_date', consolidationCutOffString);
   }
 
-  Future restore(String newDbPath) async {
+  Future restore(String newDbPath, {Future<void> Function()? onRestored}) async {
     if (!await File(newDbPath).exists()) {
       throw ('Erro com a nova base!');
     }
@@ -225,6 +225,10 @@ class DatabaseHelper {
       await File(newDbPath).copy(dbFile.path);
 
       await instance.database;
+
+      if (onRestored != null) {
+        await onRestored();
+      }
 
       if (await backupFile.exists()) {
         await backupFile.delete();

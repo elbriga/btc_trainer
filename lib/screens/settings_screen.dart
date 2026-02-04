@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'package:btc_trainer/services/database_helper.dart';
+import '/viewmodels/wallet_viewmodel.dart';
+import '/services/database_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -50,11 +52,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      await DatabaseHelper.instance.restore(result.files.single.path!);
+      final WalletViewModel? walletViewModel = context.mounted
+          ? Provider.of<WalletViewModel>(context, listen: false)
+          : null;
+
+      await DatabaseHelper.instance.restore(
+        result.files.single.path!,
+        onRestored: walletViewModel?.loadDbData,
+      );
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Base restaurada!')));
+
+      Navigator.popUntil(context, (route) => route.isFirst);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(

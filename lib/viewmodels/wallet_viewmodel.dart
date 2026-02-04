@@ -60,6 +60,7 @@ class WalletViewModel extends ChangeNotifier {
     _transactions = await dbHelper.getTransactions();
 
     _recalculateBalances();
+    notifyListeners();
   }
 
   Future _onNewPriceFromBGService(Map<String, dynamic>? event) async {
@@ -89,39 +90,40 @@ class WalletViewModel extends ChangeNotifier {
   }
 
   void _recalculateBalances() {
-    double brl = 0.00;
-    double usd = 0.0;
-    double btc = 0.0;
+    _brlBalance = 0.0;
+    _usdBalance = 0.0;
+    _btcBalance = 0.0;
 
     for (final transaction in _transactions.reversed) {
       if (transaction.type == TransactionType.buy) {
         if (transaction.from == Currency.heaven &&
             transaction.to == Currency.brl) {
-          brl += transaction.amount;
+          _brlBalance += transaction.amount;
         } else if (transaction.from == Currency.brl &&
             transaction.to == Currency.usd) {
-          brl -= transaction.amount * transaction.price;
-          usd += transaction.amount;
+          _brlBalance -= transaction.amount * transaction.price;
+          if (_brlBalance < 0.1) _brlBalance = 0; // rounding issues
+          _usdBalance += transaction.amount;
         } else if (transaction.from == Currency.usd &&
             transaction.to == Currency.btc) {
-          usd -= transaction.amount * transaction.price;
-          btc += transaction.amount;
+          _usdBalance -= transaction.amount * transaction.price;
+          if (_usdBalance < 0.1) _usdBalance = 0; // rounding issues
+          _btcBalance += transaction.amount;
         }
       } else if (transaction.type == TransactionType.sell) {
         if (transaction.from == Currency.usd &&
             transaction.to == Currency.brl) {
-          usd -= transaction.amount;
-          brl += transaction.amount * transaction.price;
+          _usdBalance -= transaction.amount;
+          if (_usdBalance < 0.1) _usdBalance = 0; // rounding issues
+          _brlBalance += transaction.amount * transaction.price;
         } else if (transaction.from == Currency.btc &&
             transaction.to == Currency.usd) {
-          btc -= transaction.amount;
-          usd += transaction.amount * transaction.price;
+          _btcBalance -= transaction.amount;
+          if (_btcBalance < 0.1) _btcBalance = 0; // rounding issues
+          _usdBalance += transaction.amount * transaction.price;
         }
       }
     }
-    _brlBalance = brl;
-    _usdBalance = usd;
-    _btcBalance = btc;
   }
 
   Future<void> buyUsd(double brlAmount) async {
