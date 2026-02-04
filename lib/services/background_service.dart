@@ -64,7 +64,7 @@ class PricesBackgroundService {
     service.invoke('update', {
       "price": _currBtcPrice,
       "dollarPrice": _currUsdPrice,
-      "timestamp": DateTime.now().toIso8601String(),
+      "timestamp": priceData.timestamp.toIso8601String(),
     });
   }
 
