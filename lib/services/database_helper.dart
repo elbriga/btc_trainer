@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
@@ -11,11 +12,15 @@ import '/models/currency.dart';
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
+  final _lock = Lock();
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
-    _database ??= await _initDB('btc_trainer.db');
+    if (_database != null) return _database!;
+    await _lock.synchronized(() async {
+      _database ??= await _initDB('btc_trainer.db');
+    });
     return _database!;
   }
 

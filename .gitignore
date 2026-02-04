@@ -44,3 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 GEMINI.md
+android/.kotlin/sessions/kotlin-compiler-*.salive
