@@ -40,8 +40,8 @@ Future<void> initializePricesService() async {
       autoStart: false,
       isForegroundMode: true,
       notificationChannelId: 'btc_trainer_service',
-      initialNotificationTitle: 'Serviço de Preço BTC',
-      initialNotificationContent: 'Buscando o preço do Bitcoin...',
+      initialNotificationTitle: 'Serviço de Preços',
+      initialNotificationContent: 'Buscando preço do Bitcoin e do Dólar...',
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
