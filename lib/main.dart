@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:btc_trainer/services/background_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
@@ -13,18 +14,19 @@ import '/theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Permission.notification.isDenied.then((value) {
-  //   if (value) {
-  //     Permission.notification.request();
-  //   }
-  // });
+  await Permission.notification.isDenied.then((value) {
+    if (value) {
+      Permission.notification.request();
+    }
+  });
 
   await initializeDateFormatting('pt_BR', null);
 
   // Check for DB updates on start
-  await DatabaseHelper.instance.checkUpdateDB();
+  DatabaseHelper.instance.checkUpdateDB();
 
-  await initializePricesService();
+  // Init the prices fetching background service
+  initializePricesService();
 
   runApp(const BtcTrainerApp());
 }
