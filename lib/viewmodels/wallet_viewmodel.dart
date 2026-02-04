@@ -13,7 +13,7 @@ class WalletViewModel extends ChangeNotifier {
   double _brlBalance = 0.00;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
-  bool _updated = false;
+  bool _priceUpdated = false;
 
   List<PriceData> _priceHistory = [];
   List<TransactionData> _transactions = [];
@@ -23,7 +23,7 @@ class WalletViewModel extends ChangeNotifier {
   double get brlBalance => _brlBalance;
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
-  bool get isUpdated => _updated;
+  bool get isPriceUpdated => _priceUpdated;
 
   List<PriceData> get priceHistory => _priceHistory;
   List<TransactionData> get transactions => _transactions;
@@ -44,37 +44,41 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _priceHistory = await dbHelper.getPrices();
-      _transactions = await dbHelper.getTransactions();
-      _recalculateBalances();
-
-      FlutterBackgroundService().on('update').listen((event) async {
-        if (event == null) return;
-
-        final newPrice = PriceData(
-          price: (event['btcPrice'] as num).toDouble(),
-          dollarPrice: (event['usdPrice'] as num).toDouble(),
-          timestamp: DateTime.parse(event['timestamp']),
-        );
-
-        if (newPrice.price <= 0.0 || newPrice.dollarPrice <= 0.0) {
-          print('Erro no Update!');
-          return;
-        }
-
-        // print('=====>> New Prices!');
-        // print('=====>>>>> ${newPrice.toMap()}');
-
-        await addNewPrice(newPrice);
-
-        _updated = true;
-      });
+      await loadDbData();
+      FlutterBackgroundService().on('update').listen(_onNewPriceFromBGService);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Called by refresh
+  Future loadDbData() async {
+    _priceHistory = await dbHelper.getPrices();
+    _transactions = await dbHelper.getTransactions();
+
+    _recalculateBalances();
+  }
+
+  Future _onNewPriceFromBGService(Map<String, dynamic>? event) async {
+    if (event == null) return;
+
+    final newPrice = PriceData.fromMap(event);
+
+    if (newPrice.price <= 0.0 || newPrice.dollarPrice <= 0.0) {
+      print('--------=============>>>>>>>>>> Erro no Update!');
+      return;
+    }
+    _priceUpdated = true;
+
+    _priceHistory.add(newPrice);
+    // TODO : How to limit?
+    // if (_priceHistory.length > 100) {
+    //   _priceHistory.removeAt(0);
+    // }
+    notifyListeners();
   }
 
   void topUpBrlBalance() async {
@@ -118,17 +122,6 @@ class WalletViewModel extends ChangeNotifier {
     _brlBalance = brl;
     _usdBalance = usd;
     _btcBalance = btc;
-  }
-
-  Future addNewPrice(PriceData newPrice) async {
-    await dbHelper.insertPrice(newPrice);
-
-    _priceHistory.add(newPrice);
-    // TODO : How to limit?
-    // if (_priceHistory.length > 100) {
-    //   _priceHistory.removeAt(0);
-    // }
-    notifyListeners();
   }
 
   Future<void> buyUsd(double brlAmount) async {

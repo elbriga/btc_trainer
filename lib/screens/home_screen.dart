@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
-    if (!viewModel.isUpdated) {
+    if (!viewModel.isPriceUpdated) {
       return Center(
         child: Row(
           spacing: 15,
