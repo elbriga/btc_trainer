@@ -88,6 +88,7 @@ class DatabaseHelper {
     ''');
   }
 
+  // Called by BackGroundService
   Future<void> insertPrice(PriceData price) async {
     final db = await instance.database;
     await db.insert('prices', price.toMap());

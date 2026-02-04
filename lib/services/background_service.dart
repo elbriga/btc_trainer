@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_background_service/flutter_background_service.dart';
 
+import '/services/database_helper.dart';
 import '/models/price_data.dart';
 
 class PricesBackgroundService {
   ServiceInstance service;
+
   Timer? _timer;
+  final _dbHelper = DatabaseHelper.instance;
 
   double _currBtcPrice = 0.0;
   double _currUsdPrice = 0.0;
@@ -56,10 +59,12 @@ class PricesBackgroundService {
       timestamp: DateTime.now(),
     );
 
+    _dbHelper.insertPrice(priceData);
+
     service.invoke('update', {
-      "btcPrice": _currBtcPrice,
-      "usdPrice": _currUsdPrice,
-      "timestamp": priceData.timestamp.toIso8601String(),
+      "price": _currBtcPrice,
+      "dollarPrice": _currUsdPrice,
+      "timestamp": DateTime.now().toIso8601String(),
     });
   }
 
@@ -67,8 +72,7 @@ class PricesBackgroundService {
     int retries = 3;
     while (retries > 0) {
       try {
-        http.Response response = await http.get(Uri.parse(url));
-        return response;
+        return await http.get(Uri.parse(url));
       } catch (_) {}
       retries--;
       await Future.delayed(Duration(seconds: 2));
