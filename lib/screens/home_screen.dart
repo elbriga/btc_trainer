@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Grafico(viewModel),
                   _buildActionButtons(context, viewModel),
                   SizedBox(
-                    height: 220.0,
+                    height: 500.0,
                     child: _buildTransactionHistory(context, viewModel),
                   ),
                 ],
