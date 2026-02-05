@@ -22,17 +22,17 @@ class TransactionCardState extends State<TransactionCard> {
 
     final String amount = CurrencyFormat.format(
       transaction.amount,
-      transaction.to,
+      isBuy ? transaction.to : transaction.from,
     );
 
     final String price = CurrencyFormat.format(
       transaction.price,
-      transaction.from,
+      isBuy ? transaction.from : transaction.to,
     );
 
     final String total = CurrencyFormat.format(
       transaction.amount * transaction.price,
-      transaction.from,
+      isBuy ? transaction.from : transaction.to,
     );
 
     final title = '${transaction.name} $amount';
