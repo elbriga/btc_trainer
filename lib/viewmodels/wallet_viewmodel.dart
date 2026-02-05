@@ -60,6 +60,9 @@ class WalletViewModel extends ChangeNotifier {
     _transactions = await dbHelper.getTransactions();
 
     _recalculateBalances();
+
+    _priceUpdated = false; // Wait for the next fetch
+
     notifyListeners();
   }
 
