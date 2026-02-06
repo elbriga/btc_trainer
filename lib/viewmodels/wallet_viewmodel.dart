@@ -66,6 +66,52 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // called by BalanceDisplay Widget
+  double getAverageBtcPrice() {
+    if (_transactions.isEmpty) return 0.0;
+
+    int totBtcBuy = 0;
+    double totalUsdPrice = _transactions
+        .map((t) {
+          if (t.type == TransactionType.buy && t.to == Currency.btc) {
+            totBtcBuy++;
+            return t.price;
+          }
+
+          return 0.0;
+        })
+        .reduce((a, b) => a + b);
+
+    return totalUsdPrice / totBtcBuy;
+  }
+
+  double getTrend(Duration duration) {
+    if (_priceHistory.isEmpty) return 0.0;
+
+    final now = DateTime.now();
+    final relevantPrices = _priceHistory.where((priceData) {
+      return now.difference(priceData.timestamp) <= duration;
+    }).toList();
+
+    if (relevantPrices.isEmpty) return 0.0;
+
+    double minPrice = relevantPrices.first.price;
+    double maxPrice = relevantPrices.first.price;
+
+    for (var priceData in relevantPrices) {
+      if (priceData.price < minPrice) {
+        minPrice = priceData.price;
+      }
+      if (priceData.price > maxPrice) {
+        maxPrice = priceData.price;
+      }
+    }
+
+    if (minPrice == 0) return 0.0;
+
+    return ((maxPrice - minPrice) / minPrice) * 100;
+  }
+
   Future _onNewPriceFromBGService(Map<String, dynamic>? event) async {
     if (event == null) return;
 
@@ -85,11 +131,13 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void topUpBrlBalance() async {
+  Future<double> getHeavenIntervention() async {
     var transaction = await dbHelper.insertHeavenTransaction(null);
     _transactions.insert(0, transaction);
     _recalculateBalances();
     notifyListeners();
+
+    return transaction.amount;
   }
 
   void _recalculateBalances() {

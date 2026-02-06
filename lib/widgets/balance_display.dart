@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '/viewmodels/wallet_viewmodel.dart';
+import '/theme/colors.dart';
 import '/models/currency.dart';
+import '/viewmodels/wallet_viewmodel.dart';
 
 class BalanceDisplay extends StatefulWidget {
   final WalletViewModel viewModel;
@@ -69,8 +70,9 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         ) ??
         0.0;
 
-    double tendenciaHora = 5.21;
-    double tendenciaDia = 0.33;
+    double tendenciaHora = viewModel.getTrend(const Duration(hours: 1));
+    double tendenciaDia = viewModel.getTrend(const Duration(hours: 24));
+    double precoMedio = viewModel.getAverageBtcPrice();
 
     var magicCloud = GestureDetector(
       onTap: () async {
@@ -101,26 +103,35 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         );
 
         if (confirm == true) {
-          viewModel.topUpBrlBalance();
+          var amount = await viewModel.getHeavenIntervention();
 
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ganhou mais R\$50,000.00 do céu!'),
+              SnackBar(
+                content: Text(
+                  'Ganhou mais ${CurrencyFormat.brl(amount)} do céu!',
+                ),
                 duration: Duration(seconds: 3),
               ),
             );
           }
         }
       },
-      child: Icon(Icons.cloud),
+      child: Column(
+        children: [
+          Icon(Icons.cloud),
+          Text(CurrencyFormat.brl(quantoVeioDoCeu)),
+        ],
+      ),
     );
 
-    return Card(
+    var cardPrecos = Card(
       elevation: 4,
+      color: AppColors.bgTitle1,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
+          spacing: 8,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,16 +143,22 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                       CurrencyFormat.usd(viewModel.currentBtcPrice),
                       style: textTheme.displayLarge,
                     ),
+                    Text(
+                      '(${CurrencyFormat.brl(priceBtcBrl)})',
+                      style: textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                   ],
                 ),
                 Column(
                   children: [
                     Text('Trend Hora', style: textTheme.displaySmall),
                     Text(
-                      '+ ${tendenciaHora.toStringAsFixed(2)} %',
+                      '${tendenciaHora > 0 ? '+' : ''}${tendenciaHora.toStringAsFixed(2)}%',
                       style: (tendenciaHora > 0.0)
-                          ? textTheme.bodyLarge
-                          : textTheme.headlineLarge,
+                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
+                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
                     ),
                   ],
                 ),
@@ -149,72 +166,36 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                   children: [
                     Text('Trend Dia', style: textTheme.displaySmall),
                     Text(
-                      '+ ${tendenciaDia.toStringAsFixed(2)} %',
-                      style: (tendenciaHora > 0.0)
-                          ? textTheme.bodyLarge
-                          : textTheme.headlineLarge,
+                      '${tendenciaDia > 0 ? '+' : ''}${tendenciaDia.toStringAsFixed(2)}%',
+                      style: (tendenciaDia > 0.0)
+                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
+                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Preço em BRL: ${CurrencyFormat.brl(priceBtcBrl)}',
-              style: textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Preço do USD: ${CurrencyFormat.brl(viewModel.currentUsdBrlPrice)}',
-              style: textTheme.displayMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildBalanceItem(
-                  context,
-                  'Saldo em BRL',
-                  CurrencyFormat.brl(viewModel.brlBalance),
-                ),
-                _buildBalanceItem(
-                  context,
-                  'Saldo em USD',
-                  CurrencyFormat.usd(viewModel.usdBalance),
-                  brlEquivalent:
-                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice),
-                ),
-                _buildBalanceItem(
-                  context,
-                  'Saldo em BTC',
-                  CurrencyFormat.btc(viewModel.btcBalance),
-                  usdEquivalent:
-                      (viewModel.btcBalance * viewModel.currentBtcPrice),
-                  brlEquivalent:
-                      (viewModel.btcBalance * viewModel.currentBtcPrice) *
-                      viewModel.currentUsdBrlPrice,
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   children: [
-                    Text('Resultado'),
+                    Text('Meu Preço Médio', style: textTheme.displaySmall),
                     Text(
-                      CurrencyFormat.brl(result),
-                      style: (result > 0.0)
-                          ? textTheme.bodyLarge
-                          : textTheme.headlineLarge,
+                      CurrencyFormat.usd(precoMedio),
+                      style: textTheme.displayMedium,
                     ),
                   ],
                 ),
+
                 Column(
                   children: [
-                    magicCloud,
-                    Text(CurrencyFormat.brl(quantoVeioDoCeu)),
+                    Text('Preço do USD', style: textTheme.displaySmall),
+                    Text(
+                      CurrencyFormat.brl(viewModel.currentUsdBrlPrice),
+                      style: textTheme.displayMedium,
+                    ),
                   ],
                 ),
               ],
@@ -223,5 +204,66 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         ),
       ),
     );
+
+    var cardResultado = Card(
+      elevation: 4,
+      color: AppColors.bgTitle3,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                Text('Resultado'),
+                Text(
+                  CurrencyFormat.brl(result),
+                  style: (result > 0.0)
+                      ? textTheme.bodyLarge
+                      : textTheme.headlineLarge,
+                ),
+              ],
+            ),
+            magicCloud,
+          ],
+        ),
+      ),
+    );
+
+    var cardSaldo = Card(
+      elevation: 4,
+      color: AppColors.bgTitle2,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildBalanceItem(
+              context,
+              'Saldo em BRL',
+              CurrencyFormat.brl(viewModel.brlBalance),
+            ),
+            _buildBalanceItem(
+              context,
+              'Saldo em USD',
+              CurrencyFormat.usd(viewModel.usdBalance),
+              brlEquivalent:
+                  (viewModel.usdBalance * viewModel.currentUsdBrlPrice),
+            ),
+            _buildBalanceItem(
+              context,
+              'Saldo em BTC',
+              CurrencyFormat.btc(viewModel.btcBalance),
+              usdEquivalent: (viewModel.btcBalance * viewModel.currentBtcPrice),
+              brlEquivalent:
+                  (viewModel.btcBalance * viewModel.currentBtcPrice) *
+                  viewModel.currentUsdBrlPrice,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Column(children: [cardPrecos, cardResultado, cardSaldo]);
   }
 }
