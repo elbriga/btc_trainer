@@ -69,6 +69,9 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         ) ??
         0.0;
 
+    double tendenciaHora = 5.21;
+    double tendenciaDia = 0.33;
+
     var magicCloud = GestureDetector(
       onTap: () async {
         final bool? confirm = await showDialog<bool>(
@@ -119,9 +122,41 @@ class BalanceDisplayState extends State<BalanceDisplay> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              'Preço do BTC: ${CurrencyFormat.usd(viewModel.currentBtcPrice)}',
-              style: textTheme.displayLarge,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text('Preço do BTC', style: textTheme.displaySmall),
+                    Text(
+                      CurrencyFormat.usd(viewModel.currentBtcPrice),
+                      style: textTheme.displayLarge,
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('Trend Hora', style: textTheme.displaySmall),
+                    Text(
+                      '+ ${tendenciaHora.toStringAsFixed(2)} %',
+                      style: (tendenciaHora > 0.0)
+                          ? textTheme.bodyLarge
+                          : textTheme.headlineLarge,
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('Trend Dia', style: textTheme.displaySmall),
+                    Text(
+                      '+ ${tendenciaDia.toStringAsFixed(2)} %',
+                      style: (tendenciaHora > 0.0)
+                          ? textTheme.bodyLarge
+                          : textTheme.headlineLarge,
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(
