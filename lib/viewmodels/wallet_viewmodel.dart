@@ -95,21 +95,12 @@ class WalletViewModel extends ChangeNotifier {
 
     if (relevantPrices.isEmpty) return 0.0;
 
-    double minPrice = relevantPrices.first.price;
-    double maxPrice = relevantPrices.first.price;
+    double initPrice = relevantPrices.first.price;
+    double lastPrice = relevantPrices.last.price;
 
-    for (var priceData in relevantPrices) {
-      if (priceData.price < minPrice) {
-        minPrice = priceData.price;
-      }
-      if (priceData.price > maxPrice) {
-        maxPrice = priceData.price;
-      }
-    }
+    if (initPrice == 0) return 0.0;
 
-    if (minPrice == 0) return 0.0;
-
-    return ((maxPrice - minPrice) / minPrice) * 100;
+    return ((lastPrice - initPrice) / initPrice) * 100;
   }
 
   Future _onNewPriceFromBGService(Map<String, dynamic>? event) async {
