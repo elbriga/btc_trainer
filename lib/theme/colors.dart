@@ -11,7 +11,7 @@ class AppColors {
   static const Color warning = Color(0xFFFF3333);
   static const Color goodjob = Color(0xFF00BB00);
 
-  static const Color bgTitle1 = Color(0xFFddeedd);
-  static const Color bgTitle2 = Color(0xFFccccff);
-  static const Color bgTitle3 = Color(0xFFffdddd);
+  static const Color bgPrices = Color(0xFFddeedd);
+  static const Color bgResult = Color(0xFFffeedd);
+  static const Color bgBalance = Color(0xFFeeeeff);
 }

@@ -72,6 +72,8 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
     double tendenciaHora = viewModel.getTrend(const Duration(hours: 1));
     double tendenciaDia = viewModel.getTrend(const Duration(hours: 24));
+    double tendenciaSemana = viewModel.getTrend(const Duration(days: 7));
+
     double precoMedio = viewModel.getAverageBtcPrice();
 
     var magicCloud = GestureDetector(
@@ -127,7 +129,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
     var cardPrecos = Card(
       elevation: 4,
-      color: AppColors.bgTitle1,
+      color: AppColors.bgPrices,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -164,7 +166,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                 ),
                 Column(
                   children: [
-                    Text('Trend Dia', style: textTheme.displaySmall),
+                    Text('Trend 24h', style: textTheme.displaySmall),
                     Text(
                       '${tendenciaDia > 0 ? '+' : ''}${tendenciaDia.toStringAsFixed(2)}%',
                       style: (tendenciaDia > 0.0)
@@ -191,6 +193,18 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
                 Column(
                   children: [
+                    Text('Trend 7 dias', style: textTheme.displaySmall),
+                    Text(
+                      '${tendenciaSemana > 0 ? '+' : ''}${tendenciaSemana.toStringAsFixed(2)}%',
+                      style: (tendenciaSemana > 0.0)
+                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
+                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
+                    ),
+                  ],
+                ),
+
+                Column(
+                  children: [
                     Text('Preço do USD', style: textTheme.displaySmall),
                     Text(
                       CurrencyFormat.brl(viewModel.currentUsdBrlPrice),
@@ -207,7 +221,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
     var cardResultado = Card(
       elevation: 4,
-      color: AppColors.bgTitle3,
+      color: AppColors.bgResult,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
@@ -232,7 +246,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
     var cardSaldo = Card(
       elevation: 4,
-      color: AppColors.bgTitle2,
+      color: AppColors.bgBalance,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
@@ -264,6 +278,6 @@ class BalanceDisplayState extends State<BalanceDisplay> {
       ),
     );
 
-    return Column(children: [cardPrecos, cardResultado, cardSaldo]);
+    return Column(spacing: 1, children: [cardPrecos, cardResultado, cardSaldo]);
   }
 }
