@@ -14,38 +14,6 @@ class BalanceDisplay extends StatefulWidget {
 }
 
 class BalanceDisplayState extends State<BalanceDisplay> {
-  Widget _buildBalanceItem(
-    BuildContext context,
-    String title,
-    String value, {
-    double? usdEquivalent,
-    double? brlEquivalent,
-  }) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: textTheme.bodySmall),
-        Text(value, style: textTheme.bodyMedium),
-        if (usdEquivalent != null && usdEquivalent > 0)
-          Text(
-            '(${CurrencyFormat.usd(usdEquivalent)})',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-          ),
-        if (brlEquivalent != null && brlEquivalent > 0)
-          Text(
-            '(${CurrencyFormat.brl(brlEquivalent)})',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-          ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final WalletViewModel viewModel = widget.viewModel;
@@ -153,9 +121,10 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                     ),
                   ],
                 ),
+
                 Column(
                   children: [
-                    Text('Trend Hora', style: textTheme.displaySmall),
+                    Text('var 60 min', style: textTheme.displaySmall),
                     Text(
                       '${tendenciaHora > 0 ? '+' : ''}${tendenciaHora.toStringAsFixed(2)}%',
                       style: (tendenciaHora > 0.0)
@@ -164,9 +133,10 @@ class BalanceDisplayState extends State<BalanceDisplay> {
                     ),
                   ],
                 ),
+
                 Column(
                   children: [
-                    Text('Trend 24h', style: textTheme.displaySmall),
+                    Text('var 24h', style: textTheme.displaySmall),
                     Text(
                       '${tendenciaDia > 0 ? '+' : ''}${tendenciaDia.toStringAsFixed(2)}%',
                       style: (tendenciaDia > 0.0)
@@ -193,22 +163,22 @@ class BalanceDisplayState extends State<BalanceDisplay> {
 
                 Column(
                   children: [
-                    Text('Trend 7 dias', style: textTheme.displaySmall),
+                    Text('Preço do USD', style: textTheme.displaySmall),
                     Text(
-                      '${tendenciaSemana > 0 ? '+' : ''}${tendenciaSemana.toStringAsFixed(2)}%',
-                      style: (tendenciaSemana > 0.0)
-                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
-                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
+                      CurrencyFormat.brl(viewModel.currentUsdBrlPrice),
+                      style: textTheme.displayMedium,
                     ),
                   ],
                 ),
 
                 Column(
                   children: [
-                    Text('Preço do USD', style: textTheme.displaySmall),
+                    Text('var 7 dias', style: textTheme.displaySmall),
                     Text(
-                      CurrencyFormat.brl(viewModel.currentUsdBrlPrice),
-                      style: textTheme.displayMedium,
+                      '${tendenciaSemana > 0 ? '+' : ''}${tendenciaSemana.toStringAsFixed(2)}%',
+                      style: (tendenciaSemana > 0.0)
+                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
+                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
                     ),
                   ],
                 ),
@@ -279,5 +249,37 @@ class BalanceDisplayState extends State<BalanceDisplay> {
     );
 
     return Column(spacing: 1, children: [cardPrecos, cardResultado, cardSaldo]);
+  }
+
+  Widget _buildBalanceItem(
+    BuildContext context,
+    String title,
+    String value, {
+    double? usdEquivalent,
+    double? brlEquivalent,
+  }) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: textTheme.bodySmall),
+        Text(value, style: textTheme.bodyMedium),
+        if (usdEquivalent != null && usdEquivalent > 0)
+          Text(
+            '(${CurrencyFormat.usd(usdEquivalent)})',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+        if (brlEquivalent != null && brlEquivalent > 0)
+          Text(
+            '(${CurrencyFormat.brl(brlEquivalent)})',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+          ),
+      ],
+    );
   }
 }
