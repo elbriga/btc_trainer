@@ -19,28 +19,10 @@ class BalanceDisplayState extends State<BalanceDisplay> {
     final WalletViewModel viewModel = widget.viewModel;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final priceBtcBrl = double.tryParse(
-      (viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice)
-          .toStringAsFixed(2),
-    );
-
+    // TODO :: mover para viewModel
     double quantoVeioDoCeu = viewModel.transactions
         .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
         .reduce((a, b) => a + b);
-
-    double result =
-        double.tryParse(
-          ((viewModel.brlBalance +
-                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
-                      (viewModel.btcBalance * priceBtcBrl!)) -
-                  quantoVeioDoCeu)
-              .toStringAsFixed(2),
-        ) ??
-        0.0;
-
-    double tendenciaHora = viewModel.getTrend(const Duration(hours: 1));
-    double tendenciaDia = viewModel.getTrend(const Duration(hours: 24));
-    double tendenciaSemana = viewModel.getTrend(const Duration(days: 7));
 
     double precoMedio = viewModel.getAverageBtcPrice();
 
@@ -95,100 +77,6 @@ class BalanceDisplayState extends State<BalanceDisplay> {
       ),
     );
 
-    var cardPrecos = Card(
-      elevation: 4,
-      color: AppColors.bgPrices,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          spacing: 8,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    Text('Preço do BTC', style: textTheme.displaySmall),
-                    Text(
-                      CurrencyFormat.usd(viewModel.currentBtcPrice),
-                      style: textTheme.displayLarge,
-                    ),
-                    Text(
-                      '(${CurrencyFormat.brl(priceBtcBrl)})',
-                      style: textTheme.bodySmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-
-                Column(
-                  children: [
-                    Text('var 60 min', style: textTheme.displaySmall),
-                    Text(
-                      '${tendenciaHora > 0 ? '+' : ''}${tendenciaHora.toStringAsFixed(2)}%',
-                      style: (tendenciaHora > 0.0)
-                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
-                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
-                    ),
-                  ],
-                ),
-
-                Column(
-                  children: [
-                    Text('var 24h', style: textTheme.displaySmall),
-                    Text(
-                      '${tendenciaDia > 0 ? '+' : ''}${tendenciaDia.toStringAsFixed(2)}%',
-                      style: (tendenciaDia > 0.0)
-                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
-                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    Text('Meu Preço Médio', style: textTheme.displaySmall),
-                    Text(
-                      CurrencyFormat.usd(precoMedio),
-                      style: textTheme.displayMedium,
-                    ),
-                  ],
-                ),
-
-                Column(
-                  children: [
-                    Text('Preço do USD', style: textTheme.displaySmall),
-                    Text(
-                      CurrencyFormat.brl(viewModel.currentUsdBrlPrice),
-                      style: textTheme.displayMedium,
-                    ),
-                  ],
-                ),
-
-                Column(
-                  children: [
-                    Text('var 7 dias', style: textTheme.displaySmall),
-                    Text(
-                      '${tendenciaSemana > 0 ? '+' : ''}${tendenciaSemana.toStringAsFixed(2)}%',
-                      style: (tendenciaSemana > 0.0)
-                          ? textTheme.bodyLarge?.copyWith(color: Colors.green)
-                          : textTheme.bodyLarge?.copyWith(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
     var cardResultado = Card(
       elevation: 4,
       color: AppColors.bgResult,
@@ -199,12 +87,10 @@ class BalanceDisplayState extends State<BalanceDisplay> {
           children: [
             Column(
               children: [
-                Text('Resultado'),
+                Text('Meu Preço Médio', style: textTheme.displaySmall),
                 Text(
-                  CurrencyFormat.brl(result),
-                  style: (result > 0.0)
-                      ? textTheme.bodyLarge
-                      : textTheme.headlineLarge,
+                  CurrencyFormat.usd(precoMedio),
+                  style: textTheme.displayMedium,
                 ),
               ],
             ),
@@ -248,7 +134,7 @@ class BalanceDisplayState extends State<BalanceDisplay> {
       ),
     );
 
-    return Column(spacing: 1, children: [cardPrecos, cardResultado, cardSaldo]);
+    return Column(spacing: 1, children: [cardResultado, cardSaldo]);
   }
 
   Widget _buildBalanceItem(

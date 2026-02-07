@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
+import '/widgets/online_display.dart';
 import '/widgets/balance_display.dart';
 import '/widgets/grafico.dart';
 import '/widgets/transaction_list.dart';
@@ -72,8 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 spacing: 10,
                 children: [
-                  BalanceDisplay(viewModel),
+                  OnlineDisplay(viewModel),
                   Grafico(viewModel),
+                  BalanceDisplay(viewModel),
                   _buildActionButtons(context, viewModel),
                   SizedBox(
                     height: 500.0,
