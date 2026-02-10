@@ -95,8 +95,15 @@ class DatabaseHelper {
 
   // Called by BackGroundService
   Future<void> insertPrice(PriceData price) async {
-    final db = await instance.database;
-    await db.insert('prices', price.toMap());
+    var db = await instance.database;
+    try {
+      await db.insert('prices', price.toMap());
+    } on DatabaseException catch (_) {
+      // happens when restore db
+      await instance.close();
+      db = await instance.database;
+      await db.insert('prices', price.toMap());
+    }
   }
 
   Future<List<PriceData>> getPrices() async {
@@ -206,7 +213,10 @@ class DatabaseHelper {
     await prefs.setString('last_consolidation_date', consolidationCutOffString);
   }
 
-  Future restore(String newDbPath, {Future<void> Function()? onRestored}) async {
+  Future restore(
+    String newDbPath, {
+    Future<void> Function()? onRestored,
+  }) async {
     if (!await File(newDbPath).exists()) {
       throw ('Erro com a nova base!');
     }

@@ -10,7 +10,6 @@ class PricesBackgroundService {
   ServiceInstance service;
 
   Timer? _timer;
-  final _dbHelper = DatabaseHelper.instance;
 
   double _currBtcPrice = 0.0;
   double _currUsdPrice = 0.0;
@@ -68,7 +67,8 @@ class PricesBackgroundService {
       timestamp: DateTime.now(),
     );
 
-    _dbHelper.insertPrice(priceData);
+    final dbHelper = DatabaseHelper.instance;
+    dbHelper.insertPrice(priceData);
 
     service.invoke('update', {
       "price": _currBtcPrice,
