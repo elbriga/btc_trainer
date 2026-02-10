@@ -1,3 +1,4 @@
+import 'package:btc_trainer/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -45,8 +46,8 @@ class GraficoState extends State<Grafico> {
               dotPainter: FlDotCirclePainter(
                 radius: 6,
                 color: transaction.type == TransactionType.buy
-                    ? Colors.green
-                    : Colors.red,
+                    ? AppColors.buy
+                    : AppColors.sell,
                 strokeColor: Colors.white,
                 strokeWidth: 2,
               ),
@@ -208,19 +209,19 @@ class GraficoState extends State<Grafico> {
                 LineChartBarData(
                   spots: _getChartSpots(viewModel.priceHistory),
                   isCurved: true,
-                  color: Colors.orange,
+                  color: AppColors.primary,
                   barWidth: 5,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.orange.withValues(alpha: 0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                   ),
                 ),
                 LineChartBarData(
                   spots: _getUsdChartSpots(viewModel),
                   isCurved: true,
-                  color: Colors.blue,
+                  color: AppColors.secondary,
                   barWidth: 5,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
@@ -251,12 +252,18 @@ class GraficoState extends State<Grafico> {
           Positioned(
             left: 8,
             bottom: 8,
-            child: Text(CurrencyFormat.usd(_minPrice), style: styleLegenda),
+            child: Text(
+              'Min: ${CurrencyFormat.usd(_minPrice)}',
+              style: styleLegenda,
+            ),
           ),
           Positioned(
             left: 8,
             top: 8,
-            child: Text(CurrencyFormat.usd(_maxPrice), style: styleLegenda),
+            child: Text(
+              'Máx: ${CurrencyFormat.usd(_maxPrice)}',
+              style: styleLegenda,
+            ),
           ),
           Positioned(
             right: 8,
