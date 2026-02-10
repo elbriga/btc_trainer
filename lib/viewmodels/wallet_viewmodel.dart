@@ -10,6 +10,8 @@ import '/services/database_helper.dart';
 class WalletViewModel extends ChangeNotifier {
   final dbHelper = DatabaseHelper.instance;
 
+  // https://charts.bitcoin.com/api/v1/charts/pi-cycle-top?interval=daily%C3%97pan=1y&limit=365
+
   double _brlBalance = 0.00;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
@@ -68,21 +70,15 @@ class WalletViewModel extends ChangeNotifier {
 
   // called by BalanceDisplay Widget
   double getAverageBtcPrice() {
-    if (_transactions.isEmpty) return 0.0;
+    final buys = _transactions.where(
+      (t) => t.type == TransactionType.buy && t.to == Currency.btc,
+    );
 
-    int totBtcBuy = 0;
-    double totalUsdPrice = _transactions
-        .map((t) {
-          if (t.type == TransactionType.buy && t.to == Currency.btc) {
-            totBtcBuy++;
-            return t.price;
-          }
+    if (buys.isEmpty) return 0.0;
 
-          return 0.0;
-        })
-        .reduce((a, b) => a + b);
+    final total = buys.fold<double>(0.0, (sum, t) => sum + t.price);
 
-    return totalUsdPrice / totBtcBuy;
+    return total / buys.length;
   }
 
   double getTrend(Duration duration) {
