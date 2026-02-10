@@ -12,6 +12,7 @@ import '/widgets/buy_sell_usd_dialog.dart';
 import '/models/currency.dart';
 import '/screens/transaction_history_screen.dart';
 import '/screens/settings_screen.dart';
+import '/screens/graph_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,7 +75,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 spacing: 10,
                 children: [
                   OnlineDisplay(viewModel),
-                  Grafico(viewModel),
+                  Grafico(
+                    viewModel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GraphScreen(viewModel),
+                        ),
+                      );
+                    },
+                  ),
                   BalanceDisplay(viewModel),
                   _buildActionButtons(context, viewModel),
                   SizedBox(

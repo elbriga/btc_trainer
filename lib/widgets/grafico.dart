@@ -8,8 +8,9 @@ import '/models/price_data.dart';
 
 class Grafico extends StatefulWidget {
   final WalletViewModel viewModel;
+  final Function()? onTap;
 
-  const Grafico(this.viewModel, {super.key});
+  const Grafico(this.viewModel, {this.onTap, super.key});
 
   @override
   GraficoState createState() => GraficoState();
@@ -180,8 +181,13 @@ class GraficoState extends State<Grafico> {
       _maxUsdPrice = _maxUsdPrice + 0.1;
     }
 
-    // TODO :: Gráfico do Resultado!
+    const styleLegenda = TextStyle(
+      color: Colors.black,
+      fontSize: 10,
+      fontWeight: FontWeight.bold,
+    );
 
+    // TODO :: Gráfico do Resultado!
     return AspectRatio(
       aspectRatio: 1.7,
       child: Stack(
@@ -245,51 +251,31 @@ class GraficoState extends State<Grafico> {
           Positioned(
             left: 8,
             bottom: 8,
-            child: Text(
-              CurrencyFormat.usd(_minPrice),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(CurrencyFormat.usd(_minPrice), style: styleLegenda),
           ),
           Positioned(
             left: 8,
             top: 8,
-            child: Text(
-              CurrencyFormat.usd(_maxPrice),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(CurrencyFormat.usd(_maxPrice), style: styleLegenda),
           ),
           Positioned(
             right: 8,
             bottom: 8,
-            child: Text(
-              CurrencyFormat.brl(_minUsdPrice),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text(CurrencyFormat.brl(_minUsdPrice), style: styleLegenda),
           ),
           Positioned(
             right: 8,
             top: 8,
-            child: Text(
-              CurrencyFormat.brl(_maxUsdPrice),
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+            child: Text(CurrencyFormat.brl(_maxUsdPrice), style: styleLegenda),
+          ),
+          if (widget.onTap != null)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: widget.onTap,
+                behavior: HitTestBehavior.translucent,
+                child: Container(),
               ),
             ),
-          ),
         ],
       ),
     );
