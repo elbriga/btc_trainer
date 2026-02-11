@@ -4,20 +4,14 @@ import 'package:intl/intl.dart';
 import '/models/currency.dart';
 import '/models/transaction_data.dart';
 
-class TransactionCard extends StatefulWidget {
+class TransactionCard extends StatelessWidget {
   final TransactionData transaction;
 
   const TransactionCard(this.transaction, {super.key});
 
   @override
-  TransactionCardState createState() => TransactionCardState();
-}
-
-class TransactionCardState extends State<TransactionCard> {
-  @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final transaction = widget.transaction;
     final isBuy = transaction.type == TransactionType.buy;
 
     final String amount = CurrencyFormat.format(

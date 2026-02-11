@@ -37,6 +37,10 @@ class WalletViewModel extends ChangeNotifier {
   double get currentUsdBrlPrice =>
       _priceHistory.isEmpty ? 0 : _priceHistory.last.dollarPrice;
 
+  double get quantoVeioDoCeu => _transactions
+      .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
+      .reduce((a, b) => a + b);
+
   WalletViewModel() {
     _initialize();
   }

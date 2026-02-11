@@ -1,4 +1,3 @@
-import 'package:btc_trainer/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -6,20 +5,51 @@ import '/viewmodels/wallet_viewmodel.dart';
 import '/models/currency.dart';
 import '/models/transaction_data.dart';
 import '/models/price_data.dart';
+import '/theme/colors.dart';
 
-class Grafico extends StatefulWidget {
+class Grafico extends StatelessWidget {
   final WalletViewModel viewModel;
   final Function()? onTap;
+  late final double _minPrice, _maxPrice;
+  late final double _minUsdPrice, _maxUsdPrice;
 
-  const Grafico(this.viewModel, {this.onTap, super.key});
+  Grafico(this.viewModel, {this.onTap, super.key}) {
+    double minPrice, maxPrice, minUsdPrice, maxUsdPrice;
 
-  @override
-  GraficoState createState() => GraficoState();
-}
+    if (viewModel.priceHistory.isEmpty) {
+      minPrice = 0;
+      maxPrice = 0;
+      minUsdPrice = 0;
+      maxUsdPrice = 0;
+    } else {
+      minPrice = double.maxFinite;
+      maxPrice = -double.maxFinite;
+      minUsdPrice = double.maxFinite;
+      maxUsdPrice = -double.maxFinite;
+      for (var p = 0; p < viewModel.priceHistory.length; p++) {
+        var price = viewModel.priceHistory[p].price;
+        if (price < minPrice) minPrice = price;
+        if (price > maxPrice) maxPrice = price;
 
-class GraficoState extends State<Grafico> {
-  late double _minPrice, _maxPrice;
-  late double _minUsdPrice, _maxUsdPrice;
+        var usdPrice = viewModel.priceHistory[p].dollarPrice;
+        if (usdPrice < minUsdPrice) minUsdPrice = usdPrice;
+        if (usdPrice > maxUsdPrice) maxUsdPrice = usdPrice;
+      }
+      if (minPrice == maxPrice) {
+        minPrice = minPrice - 5;
+        maxPrice = maxPrice + 5;
+      }
+      if (minUsdPrice == maxUsdPrice) {
+        minUsdPrice = minUsdPrice - 0.1;
+        maxUsdPrice = maxUsdPrice + 0.1;
+      }
+    }
+
+    _minPrice = minPrice;
+    _maxPrice = maxPrice;
+    _minUsdPrice = minUsdPrice;
+    _maxUsdPrice = maxUsdPrice;
+  }
 
   List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
     final List<ScatterSpot> spots = [];
@@ -72,7 +102,6 @@ class GraficoState extends State<Grafico> {
 
   @override
   Widget build(BuildContext context) {
-    final WalletViewModel viewModel = widget.viewModel;
     //final TextTheme textTheme = Theme.of(context).textTheme;
 
     if (viewModel.priceHistory.isEmpty) {
@@ -80,28 +109,6 @@ class GraficoState extends State<Grafico> {
         height: 150,
         child: Center(child: Text("Ainda não há dados de preço.")),
       );
-    }
-
-    _minPrice = double.maxFinite;
-    _maxPrice = -double.maxFinite;
-    _minUsdPrice = double.maxFinite;
-    _maxUsdPrice = -double.maxFinite;
-    for (var p = 0; p < viewModel.priceHistory.length; p++) {
-      var price = viewModel.priceHistory[p].price;
-      if (price < _minPrice) _minPrice = price;
-      if (price > _maxPrice) _maxPrice = price;
-
-      var usdPrice = viewModel.priceHistory[p].dollarPrice;
-      if (usdPrice < _minUsdPrice) _minUsdPrice = usdPrice;
-      if (usdPrice > _maxUsdPrice) _maxUsdPrice = usdPrice;
-    }
-    if (_minPrice == _maxPrice) {
-      _minPrice = _minPrice - 5;
-      _maxPrice = _maxPrice + 5;
-    }
-    if (_minUsdPrice == _maxUsdPrice) {
-      _minUsdPrice = _minUsdPrice - 0.1;
-      _maxUsdPrice = _maxUsdPrice + 0.1;
     }
 
     const styleLegenda = TextStyle(
@@ -200,10 +207,10 @@ class GraficoState extends State<Grafico> {
             top: 8,
             child: Text(CurrencyFormat.brl(_maxUsdPrice), style: styleLegenda),
           ),
-          if (widget.onTap != null)
+          if (onTap != null)
             Positioned.fill(
               child: GestureDetector(
-                onTap: widget.onTap,
+                onTap: onTap,
                 behavior: HitTestBehavior.translucent,
                 child: Container(),
               ),

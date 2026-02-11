@@ -4,19 +4,13 @@ import '/theme/colors.dart';
 import '/models/currency.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 
-class OnlineDisplay extends StatefulWidget {
+class OnlineDisplay extends StatelessWidget {
   final WalletViewModel viewModel;
 
   const OnlineDisplay(this.viewModel, {super.key});
 
   @override
-  OnlineDisplayState createState() => OnlineDisplayState();
-}
-
-class OnlineDisplayState extends State<OnlineDisplay> {
-  @override
   Widget build(BuildContext context) {
-    final WalletViewModel viewModel = widget.viewModel;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     final priceBtcBrl = double.tryParse(

@@ -4,19 +4,13 @@ import '/theme/colors.dart';
 import '/models/currency.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 
-class BalanceDisplay extends StatefulWidget {
+class BalanceDisplay extends StatelessWidget {
   final WalletViewModel viewModel;
 
   const BalanceDisplay(this.viewModel, {super.key});
 
   @override
-  BalanceDisplayState createState() => BalanceDisplayState();
-}
-
-class BalanceDisplayState extends State<BalanceDisplay> {
-  @override
   Widget build(BuildContext context) {
-    final WalletViewModel viewModel = widget.viewModel;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     // TODO :: mover para viewModel
