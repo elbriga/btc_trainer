@@ -13,24 +13,14 @@ class OnlineDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final priceBtcBrl = double.tryParse(
-      (viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice)
-          .toStringAsFixed(2),
-    );
+    final priceBtcBrl =
+        viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
 
-    double quantoVeioDoCeu = viewModel.transactions
-        .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
-        .reduce((a, b) => a + b);
-
-    double result =
-        double.tryParse(
-          ((viewModel.brlBalance +
-                      (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
-                      (viewModel.btcBalance * priceBtcBrl!)) -
-                  quantoVeioDoCeu)
-              .toStringAsFixed(2),
-        ) ??
-        0.0;
+    final result =
+        (viewModel.brlBalance +
+            (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
+            (viewModel.btcBalance * priceBtcBrl)) -
+        viewModel.quantoVeioDoCeu;
 
     Column buildVarBox(String title, double amount) {
       return Column(

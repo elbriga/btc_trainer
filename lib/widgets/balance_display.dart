@@ -13,11 +13,6 @@ class BalanceDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // TODO :: mover para viewModel
-    double quantoVeioDoCeu = viewModel.transactions
-        .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
-        .reduce((a, b) => a + b);
-
     double precoMedio = viewModel.getAverageBtcPrice();
 
     var magicCloud = GestureDetector(
@@ -66,7 +61,7 @@ class BalanceDisplay extends StatelessWidget {
       child: Column(
         children: [
           Icon(Icons.cloud),
-          Text(CurrencyFormat.brl(quantoVeioDoCeu)),
+          Text(CurrencyFormat.brl(viewModel.quantoVeioDoCeu)),
         ],
       ),
     );
