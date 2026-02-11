@@ -18,7 +18,8 @@ class Grafico extends StatefulWidget {
 }
 
 class GraficoState extends State<Grafico> {
-  late double _minPrice, _maxPrice, _minUsdPrice, _maxUsdPrice;
+  late double _minPrice, _maxPrice;
+  late double _minUsdPrice, _maxUsdPrice;
 
   List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
     final List<ScatterSpot> spots = [];
@@ -59,93 +60,14 @@ class GraficoState extends State<Grafico> {
     return spots;
   }
 
-  List<FlSpot> _getResultChartSpots(WalletViewModel viewModel) {
-    print('+++++++++++++++++++++++++++++=====================');
-    double brl = viewModel.transactions[0].amount;
-    double usd = 0.0;
-    double btc = 0.0;
-
-    double quantoVeioDoCeu = brl;
-
-    int t = 1;
-    double minResult = double.maxFinite;
-    double maxResult = -double.maxFinite;
-    TransactionData transaction = viewModel.transactions[1];
-    List<double> results = [];
-    for (int i = 0; i < viewModel.priceHistory.length; i++) {
-      var pd = viewModel.priceHistory[i];
-      while (pd.timestamp.isAfter(transaction.timestamp)) {
-        if (transaction.type == TransactionType.buy) {
-          if (transaction.from == Currency.heaven &&
-              transaction.to == Currency.brl) {
-            brl += transaction.amount;
-            quantoVeioDoCeu += transaction.amount;
-          } else if (transaction.from == Currency.brl &&
-              transaction.to == Currency.usd) {
-            brl -= transaction.amount * transaction.price;
-            usd += transaction.amount;
-          } else if (transaction.from == Currency.usd &&
-              transaction.to == Currency.btc) {
-            usd -= transaction.amount * transaction.price;
-            btc += transaction.amount;
-          }
-        } else if (transaction.type == TransactionType.sell) {
-          if (transaction.from == Currency.usd &&
-              transaction.to == Currency.brl) {
-            usd -= transaction.amount;
-            brl += transaction.amount * transaction.price;
-          } else if (transaction.from == Currency.btc &&
-              transaction.to == Currency.usd) {
-            btc -= transaction.amount;
-            usd += transaction.amount * transaction.price;
-          }
-        }
-
-        if (t >= viewModel.transactions.length - 1) break;
-        transaction = viewModel.transactions[++t];
-      }
-
-      double result =
-          ((brl + (usd * pd.dollarPrice) + (btc * pd.price * pd.dollarPrice)) -
-          quantoVeioDoCeu);
-      results.add(result);
-
-      if (result > maxResult) maxResult = result;
-      if (result < minResult) minResult = result;
-    }
-
-    double rangeResult = maxResult - minResult;
-    double rangeBtc = _maxPrice - _minPrice;
-    double resultBtcRatio = (_minPrice + (rangeBtc / 2)) / rangeResult;
-
-    print('----------=======>>>> RES: ${results.length}');
-
-    final List<FlSpot> spots = [];
-    for (int i = 0; i < results.length; i++) {
-      double res = results[i] * resultBtcRatio;
-      spots.add(FlSpot(i.toDouble(), res));
-      print('>>>>> $i > $res');
-    }
-    return spots;
-  }
-
   List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
     double i = 0;
     return priceHistory.map((pd) => FlSpot(i++, pd.price)).toList();
   }
 
-  List<FlSpot> _getUsdChartSpots(WalletViewModel viewModel) {
-    double range = _maxPrice - _minPrice;
-    double usdBtcRatio =
-        (_minPrice + (range / 2)) / viewModel.currentUsdBrlPrice;
-
-    final List<FlSpot> spots = [];
-    for (int i = 0; i < viewModel.priceHistory.length; i++) {
-      double usdOfs = viewModel.priceHistory[i].dollarPrice * usdBtcRatio;
-      spots.add(FlSpot(i.toDouble(), usdOfs));
-    }
-
-    return spots;
+  List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory) {
+    double i = 0;
+    return priceHistory.map((pd) => FlSpot(i++, pd.dollarPrice)).toList();
   }
 
   @override
@@ -164,12 +86,12 @@ class GraficoState extends State<Grafico> {
     _maxPrice = -double.maxFinite;
     _minUsdPrice = double.maxFinite;
     _maxUsdPrice = -double.maxFinite;
-    for (var p = 0; p < widget.viewModel.priceHistory.length; p++) {
-      var price = widget.viewModel.priceHistory[p].price;
+    for (var p = 0; p < viewModel.priceHistory.length; p++) {
+      var price = viewModel.priceHistory[p].price;
       if (price < _minPrice) _minPrice = price;
       if (price > _maxPrice) _maxPrice = price;
 
-      var usdPrice = widget.viewModel.priceHistory[p].dollarPrice;
+      var usdPrice = viewModel.priceHistory[p].dollarPrice;
       if (usdPrice < _minUsdPrice) _minUsdPrice = usdPrice;
       if (usdPrice > _maxUsdPrice) _maxUsdPrice = usdPrice;
     }
@@ -188,7 +110,6 @@ class GraficoState extends State<Grafico> {
       fontWeight: FontWeight.bold,
     );
 
-    // TODO :: Gráfico do Resultado!
     return AspectRatio(
       aspectRatio: 1.7,
       child: Stack(
@@ -218,22 +139,26 @@ class GraficoState extends State<Grafico> {
                     color: AppColors.primary.withValues(alpha: 0.3),
                   ),
                 ),
+              ],
+            ),
+          ),
+          LineChart(
+            LineChartData(
+              gridData: const FlGridData(show: false),
+              titlesData: const FlTitlesData(show: false),
+              minX: 0,
+              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minY: _minUsdPrice - 0.25,
+              maxY: _maxUsdPrice + 0.25,
+              lineBarsData: [
                 LineChartBarData(
-                  spots: _getUsdChartSpots(viewModel),
+                  spots: _getUsdChartSpots(viewModel.priceHistory),
                   isCurved: true,
                   color: AppColors.secondary,
                   barWidth: 5,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                 ),
-                // LineChartBarData(
-                //   spots: _getResultChartSpots(viewModel),
-                //   isCurved: true,
-                //   color: Colors.red,
-                //   barWidth: 5,
-                //   isStrokeCapRound: true,
-                //   dotData: const FlDotData(show: false),
-                // ),
               ],
             ),
           ),
