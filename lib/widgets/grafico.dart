@@ -10,23 +10,33 @@ import '/theme/colors.dart';
 class Grafico extends StatelessWidget {
   final WalletViewModel viewModel;
   final Function()? onTap;
+  late final double _minTS, _maxTS;
   late final double _minPrice, _maxPrice;
   late final double _minUsdPrice, _maxUsdPrice;
 
   Grafico(this.viewModel, {this.onTap, super.key}) {
     double minPrice, maxPrice, minUsdPrice, maxUsdPrice;
+    int minTS, maxTS;
 
     if (viewModel.priceHistory.isEmpty) {
+      minTS = 0;
+      maxTS = 0;
       minPrice = 0;
       maxPrice = 0;
       minUsdPrice = 0;
       maxUsdPrice = 0;
     } else {
+      minTS = -1 >>> 1; // int max
+      maxTS = 0;
       minPrice = double.maxFinite;
       maxPrice = -double.maxFinite;
       minUsdPrice = double.maxFinite;
       maxUsdPrice = -double.maxFinite;
       for (var p = 0; p < viewModel.priceHistory.length; p++) {
+        var ts = viewModel.priceHistory[p].timestamp.millisecondsSinceEpoch;
+        if (ts < minTS) minTS = ts;
+        if (ts > maxTS) maxTS = ts;
+
         var price = viewModel.priceHistory[p].price;
         if (price < minPrice) minPrice = price;
         if (price > maxPrice) maxPrice = price;
@@ -45,6 +55,8 @@ class Grafico extends StatelessWidget {
       }
     }
 
+    _minTS = minTS.toDouble();
+    _maxTS = maxTS.toDouble();
     _minPrice = minPrice;
     _maxPrice = maxPrice;
     _minUsdPrice = minUsdPrice;
@@ -55,49 +67,62 @@ class Grafico extends StatelessWidget {
     final List<ScatterSpot> spots = [];
 
     for (final transaction in viewModel.transactions) {
-      if (transaction.from == Currency.btc || transaction.to == Currency.btc) {
-        int closestIndex = -1;
-        Duration minDuration = const Duration(days: 999);
+      if (transaction.from != Currency.btc && transaction.to != Currency.btc) {
+        continue;
+      }
 
-        for (int i = 0; i < viewModel.priceHistory.length; i++) {
-          final duration = viewModel.priceHistory[i].timestamp
-              .difference(transaction.timestamp)
-              .abs();
-          if (duration < minDuration) {
-            minDuration = duration;
-            closestIndex = i;
-          }
-        }
-
-        if (closestIndex != -1) {
-          spots.add(
-            ScatterSpot(
-              closestIndex.toDouble(),
-              transaction.price,
-              dotPainter: FlDotCirclePainter(
-                radius: 6,
-                color: transaction.type == TransactionType.buy
-                    ? AppColors.buy
-                    : AppColors.sell,
-                strokeColor: Colors.white,
-                strokeWidth: 2,
-              ),
-            ),
-          );
+      int closestIndex = -1;
+      Duration minDuration = const Duration(days: 99999);
+      for (int i = 0; i < viewModel.priceHistory.length; i++) {
+        final duration = viewModel.priceHistory[i].timestamp
+            .difference(transaction.timestamp)
+            .abs();
+        if (duration < minDuration) {
+          minDuration = duration;
+          closestIndex =
+              viewModel.priceHistory[i].timestamp.millisecondsSinceEpoch;
         }
       }
+      if (closestIndex == -1) {
+        continue;
+      }
+
+      spots.add(
+        ScatterSpot(
+          closestIndex.toDouble(),
+          transaction.price,
+          dotPainter: FlDotCirclePainter(
+            radius: 6,
+            color: transaction.type == TransactionType.buy
+                ? AppColors.buy
+                : AppColors.sell,
+            strokeColor: Colors.white,
+            strokeWidth: 2,
+          ),
+        ),
+      );
     }
     return spots;
   }
 
   List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
-    double i = 0;
-    return priceHistory.map((pd) => FlSpot(i++, pd.price)).toList();
+    return priceHistory
+        .map(
+          (pd) =>
+              FlSpot(pd.timestamp.millisecondsSinceEpoch.toDouble(), pd.price),
+        )
+        .toList();
   }
 
   List<FlSpot> _getUsdChartSpots(List<PriceData> priceHistory) {
-    double i = 0;
-    return priceHistory.map((pd) => FlSpot(i++, pd.dollarPrice)).toList();
+    return priceHistory
+        .map(
+          (pd) => FlSpot(
+            pd.timestamp.millisecondsSinceEpoch.toDouble(),
+            pd.dollarPrice,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -129,8 +154,8 @@ class Grafico extends StatelessWidget {
                 show: true,
                 border: Border.all(color: const Color(0xff37434d), width: 1),
               ),
-              minX: 0,
-              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minX: _minTS,
+              maxX: _maxTS,
               minY: _minPrice,
               maxY: _maxPrice,
               lineBarsData: [
@@ -153,8 +178,8 @@ class Grafico extends StatelessWidget {
             LineChartData(
               gridData: const FlGridData(show: false),
               titlesData: const FlTitlesData(show: false),
-              minX: 0,
-              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minX: _minTS,
+              maxX: _maxTS,
               minY: _minUsdPrice - 0.25,
               maxY: _maxUsdPrice + 0.25,
               lineBarsData: [
@@ -172,8 +197,8 @@ class Grafico extends StatelessWidget {
           ScatterChart(
             ScatterChartData(
               scatterSpots: _generateTransactionSpots(viewModel),
-              minX: 0,
-              maxX: (viewModel.priceHistory.length - 1).toDouble(),
+              minX: _minTS,
+              maxX: _maxTS,
               minY: _minPrice,
               maxY: _maxPrice,
               gridData: const FlGridData(show: false),

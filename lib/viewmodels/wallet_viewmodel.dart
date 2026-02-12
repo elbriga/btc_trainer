@@ -12,7 +12,7 @@ class WalletViewModel extends ChangeNotifier {
 
   // https://charts.bitcoin.com/api/v1/charts/pi-cycle-top?interval=daily%C3%97pan=1y&limit=365
 
-  double _brlBalance = 0.00;
+  double _brlBalance = 0.0;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
   bool _priceUpdated = false;
