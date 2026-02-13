@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
 import '/models/currency.dart';
@@ -92,17 +93,28 @@ class Grafico extends StatelessWidget {
           closestIndex.toDouble(),
           transaction.price,
           dotPainter: FlDotCirclePainter(
-            radius: 6,
+            radius: 3,
             color: transaction.type == TransactionType.buy
                 ? AppColors.buy
                 : AppColors.sell,
-            strokeColor: Colors.white,
+            strokeColor: Colors.black,
             strokeWidth: 2,
           ),
         ),
       );
     }
     return spots;
+  }
+
+  List<FlSpot> _getMonthSpots(List<PriceData> priceHistory) {
+    return priceHistory
+        .map(
+          (pd) => FlSpot(
+            pd.timestamp.millisecondsSinceEpoch.toDouble(),
+            pd.timestamp.month % 2,
+          ),
+        )
+        .toList();
   }
 
   List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
@@ -136,6 +148,10 @@ class Grafico extends StatelessWidget {
       );
     }
 
+    final firstDate = DateFormat(
+      'dd/MM/yyyy',
+    ).format(viewModel.priceHistory.first.timestamp);
+
     const styleLegenda = TextStyle(
       color: Colors.black,
       fontSize: 10,
@@ -143,9 +159,27 @@ class Grafico extends StatelessWidget {
     );
 
     return AspectRatio(
-      aspectRatio: 1.7,
+      aspectRatio: 2.2,
       child: Stack(
         children: [
+          LineChart(
+            LineChartData(
+              gridData: const FlGridData(show: false),
+              titlesData: const FlTitlesData(show: false),
+              minX: _minTS,
+              maxX: _maxTS,
+              minY: 0,
+              maxY: 1,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: _getMonthSpots(viewModel.priceHistory),
+                  color: AppColors.textSecondary.withAlpha(100),
+                  barWidth: 2,
+                  dotData: const FlDotData(show: false),
+                ),
+              ],
+            ),
+          ),
           LineChart(
             LineChartData(
               gridData: const FlGridData(show: false),
@@ -161,9 +195,8 @@ class Grafico extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: _getChartSpots(viewModel.priceHistory),
-                  isCurved: true,
                   color: AppColors.primary,
-                  barWidth: 5,
+                  barWidth: 3,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
@@ -185,9 +218,8 @@ class Grafico extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: _getUsdChartSpots(viewModel.priceHistory),
-                  isCurved: true,
                   color: AppColors.secondary,
-                  barWidth: 5,
+                  barWidth: 3,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                 ),
@@ -205,6 +237,11 @@ class Grafico extends StatelessWidget {
               titlesData: const FlTitlesData(show: false),
               borderData: FlBorderData(show: false),
             ),
+          ),
+          Positioned(
+            left: 8,
+            bottom: 44,
+            child: Text('Início: $firstDate', style: styleLegenda),
           ),
           Positioned(
             left: 8,
