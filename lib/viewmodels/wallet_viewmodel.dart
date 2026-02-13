@@ -10,8 +10,6 @@ import '/services/database_helper.dart';
 class WalletViewModel extends ChangeNotifier {
   final dbHelper = DatabaseHelper.instance;
 
-  // https://charts.bitcoin.com/api/v1/charts/pi-cycle-top?interval=daily%C3%97pan=1y&limit=365
-
   double _brlBalance = 0.0;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
