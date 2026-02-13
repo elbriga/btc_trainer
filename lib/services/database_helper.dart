@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:synchronized/synchronized.dart';
 
 import '/models/price_data.dart';
@@ -33,14 +31,41 @@ class DatabaseHelper {
 
   // Called on app start
   Future checkUpdateDB() async {
+    _checkConsolidateColumn();
     _check1stFromHeaven();
     _fixZeroes();
-    // _consolidate();
+    _consolidate();
   }
 
   Future _fixZeroes() async {
     final db = await instance.database;
     db.rawQuery('DELETE FROM prices WHERE price = 0 OR dollarPrice = 0');
+  }
+
+  Future<bool> _columnExists(
+    Database db,
+    String tableName,
+    String columnName,
+  ) async {
+    final List<Map<String, dynamic>> tableInfo = await db.rawQuery(
+      'PRAGMA table_info($tableName)',
+    );
+
+    for (var column in tableInfo) {
+      if (column['name'] == columnName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future _checkConsolidateColumn() async {
+    final db = await instance.database;
+    if (!await _columnExists(db, 'prices', 'consolidate')) {
+      await db.execute(
+        'ALTER TABLE prices ADD COLUMN consolidate INTEGER DEFAULT 0',
+      );
+    }
   }
 
   Future _check1stFromHeaven() async {
@@ -76,7 +101,8 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         price REAL NOT NULL,
         dollarPrice REAL NOT NULL,
-        timestamp TEXT NOT NULL
+        timestamp TEXT NOT NULL,
+        consolidate INTEGER DEFAULT 0
       )
     ''');
 
@@ -158,36 +184,32 @@ class DatabaseHelper {
   // Group the minutes of the same hour => / 60
   Future _consolidate() async {
     final db = await instance.database;
-    final prefs = await SharedPreferences.getInstance();
-    final lastConsolidatedDateString = prefs.getString(
-      'last_consolidation_date',
-    );
 
     // We'll consolidate entries older than today to avoid
     // consolidating data that is still being collected.
+    final keep = Duration(hours: 24);
     final now = DateTime.now();
-    final consolidationCutOff = DateTime(now.year, now.month, now.day);
+    final sk = now.subtract(keep);
+    final consolidationCutOff = DateTime(sk.year, sk.month, sk.day, sk.hour);
     final consolidationCutOffString = consolidationCutOff.toIso8601String();
 
-    String whereClause = 'timestamp < ?';
+    String whereClause =
+        '(consolidate IS NULL OR consolidate < 60) AND timestamp < ?';
     List<String> whereArgs = [consolidationCutOffString];
-
-    if (lastConsolidatedDateString != null) {
-      whereClause = 'timestamp >= ? AND timestamp < ?';
-      whereArgs = [lastConsolidatedDateString, consolidationCutOffString];
-    }
 
     final consolidatedPrices = await db.rawQuery('''
       SELECT
         AVG(price) as price,
         AVG(dollarPrice) as dollarPrice,
-        strftime('%Y-%m-%d %H:00:00.000', timestamp) as timestamp
+        strftime('%Y-%m-%d %H:00:00.000', timestamp) as timestamp,
+        60 as consolidate
       FROM prices
       WHERE $whereClause
       GROUP BY strftime('%Y-%m-%d %H', timestamp)
     ''', whereArgs);
 
     if (consolidatedPrices.isEmpty) {
+      print('------------===========>> RETURN');
       return;
     }
 
@@ -208,9 +230,6 @@ class DatabaseHelper {
 
     prices = await getPrices();
     print('------------===========>> Prices after: ${prices.length}');
-
-    // save last consolidated point for the next run
-    await prefs.setString('last_consolidation_date', consolidationCutOffString);
   }
 
   Future restore(

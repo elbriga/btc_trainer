@@ -24,7 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadData();
   }
 
-  void _loadData() async {
+  Future _loadData() async {
     var prices = await DatabaseHelper.instance.getPrices();
     var txs = await DatabaseHelper.instance.getTransactions();
 
