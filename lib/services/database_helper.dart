@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:synchronized/synchronized.dart';
+import 'package:http/http.dart' as http;
 
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
@@ -10,15 +12,11 @@ import '/models/currency.dart';
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
-  final _lock = Lock();
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    await _lock.synchronized(() async {
-      _database ??= await _initDB('btc_trainer.db');
-    });
+    _database ??= await _initDB('btc_trainer.db');
     return _database!;
   }
 
@@ -29,43 +27,90 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  // Called on app start
-  Future checkUpdateDB() async {
-    _checkConsolidateColumn();
-    _check1stFromHeaven();
-    _fixZeroes();
-    _consolidate();
-  }
+  Future<List<PriceData>> getPrices() async {
+    /*
+    final results = await Future.wait([
+      (() async {
+        try {
+          return await _fetchBtcPrice();
+        } catch (e) {
+          print('=================>>>>>>>>> Erro BTC: $e');
+          return _currBtcPrice;
+        }
+      })(),
+      (() async {
+        try {
+          // 1st API
+          return await _fetchUsdBrlPrice2();
+        } catch (e) {
+          print('=============>>>>>>>>>>> Erro USD2: $e');
 
-  Future _fixZeroes() async {
-    final db = await instance.database;
-    db.rawQuery('DELETE FROM prices WHERE price = 0 OR dollarPrice = 0');
-  }
+          try {
+            // 2nd API backup
+            return await _fetchUsdBrlPrice();
+          } catch (e) {
+            print('=============>>>>>>>>>>> Erro USD1: $e');
+          }
 
-  Future<bool> _columnExists(
-    Database db,
-    String tableName,
-    String columnName,
-  ) async {
-    final List<Map<String, dynamic>> tableInfo = await db.rawQuery(
-      'PRAGMA table_info($tableName)',
-    );
+          return _currUsdPrice;
+        }
+      })(),
+    ]);
+    */
+    final List history = await _fetchHistoryPrices();
 
-    for (var column in tableInfo) {
-      if (column['name'] == columnName) {
-        return true;
+    final agora = DateTime.now();
+    final ontem = DateTime(agora.year, agora.month, agora.day - 1);
+
+    final List<PriceData> prices = [];
+    for (var h in history) {
+      final pd = PriceData.fromMap(h);
+      if (pd.timestamp.isBefore(ontem)) {
+        prices.add(pd);
       }
     }
-    return false;
+
+    return prices;
   }
 
-  Future _checkConsolidateColumn() async {
-    final db = await instance.database;
-    if (!await _columnExists(db, 'prices', 'consolidate')) {
-      await db.execute(
-        'ALTER TABLE prices ADD COLUMN consolidate INTEGER DEFAULT 0',
-      );
+  Future<http.Response> _fetchHttp(String url, {int timeout = 6}) async {
+    // print('-------=========.>>>>> $url');
+    final response = await http
+        .get(Uri.parse(url))
+        .timeout(
+          Duration(seconds: timeout),
+          onTimeout: () {
+            throw TimeoutException('The connection has timed out');
+          },
+        );
+    // print('-------=== $url = ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return response;
+    } else {
+      throw Exception('Failed to load data: ${response.statusCode}');
     }
+  }
+
+  Future<List> _fetchHistoryPrices() async {
+    final response = await _fetchHttp(
+      'https://charts.bitcoin.com/api/v1/charts/pi-cycle-top?interval=hourly&timespan=1y',
+    );
+    final data = json.decode(response.body);
+
+    List prices = data['data']?['price'] ?? [];
+    return prices;
+  }
+
+  // Called on app start
+  Future checkUpdateDB() async {
+    //_dropPricesTable();
+    _check1stFromHeaven();
+  }
+
+  Future _dropPricesTable() async {
+    final db = await instance.database;
+    db.rawQuery('DROP TABLE IF EXISTS prices');
   }
 
   Future _check1stFromHeaven() async {
@@ -97,16 +142,6 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE prices (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        price REAL NOT NULL,
-        dollarPrice REAL NOT NULL,
-        timestamp TEXT NOT NULL,
-        consolidate INTEGER DEFAULT 0
-      )
-    ''');
-
-    await db.execute('''
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
@@ -117,30 +152,6 @@ class DatabaseHelper {
         timestamp TEXT NOT NULL
       )
     ''');
-  }
-
-  // Called by BackGroundService
-  Future<void> insertPrice(PriceData price) async {
-    var db = await instance.database;
-    try {
-      await db.insert('prices', price.toMap());
-    } on DatabaseException catch (_) {
-      // happens when restore db
-      await instance.close();
-      db = await instance.database;
-      await db.insert('prices', price.toMap());
-    }
-  }
-
-  Future<List<PriceData>> getPrices() async {
-    final db = await instance.database;
-    final maps = await db.query('prices', orderBy: 'timestamp ASC');
-
-    if (maps.isNotEmpty) {
-      return maps.map((map) => PriceData.fromMap(map)).toList();
-    } else {
-      return [];
-    }
   }
 
   Future<TransactionData> insertHeavenTransaction(DateTime? dt) async {
@@ -179,57 +190,6 @@ class DatabaseHelper {
     final db = await instance.database;
     db.close();
     _database = null;
-  }
-
-  // Group the minutes of the same hour => / 60
-  Future _consolidate() async {
-    final db = await instance.database;
-
-    // We'll consolidate entries older than today to avoid
-    // consolidating data that is still being collected.
-    final keep = Duration(hours: 24);
-    final now = DateTime.now();
-    final sk = now.subtract(keep);
-    final consolidationCutOff = DateTime(sk.year, sk.month, sk.day, sk.hour);
-    final consolidationCutOffString = consolidationCutOff.toIso8601String();
-
-    String whereClause =
-        '(consolidate IS NULL OR consolidate < 60) AND timestamp < ?';
-    List<String> whereArgs = [consolidationCutOffString];
-
-    final consolidatedPrices = await db.rawQuery('''
-      SELECT
-        AVG(price) as price,
-        AVG(dollarPrice) as dollarPrice,
-        strftime('%Y-%m-%d %H:00:00.000', timestamp) as timestamp,
-        60 as consolidate
-      FROM prices
-      WHERE $whereClause
-      GROUP BY strftime('%Y-%m-%d %H', timestamp)
-    ''', whereArgs);
-
-    if (consolidatedPrices.isEmpty) {
-      print('------------===========>> RETURN');
-      return;
-    }
-
-    var prices = await getPrices();
-    print('------------===========>> Prices before: ${prices.length}');
-
-    await db.transaction((txn) async {
-      // Delete the old, minutely entries
-      await txn.delete('prices', where: whereClause, whereArgs: whereArgs);
-
-      // Insert the new, hourly-averaged entries
-      final batch = txn.batch();
-      for (var price in consolidatedPrices) {
-        batch.insert('prices', price);
-      }
-      await batch.commit(noResult: true);
-    });
-
-    prices = await getPrices();
-    print('------------===========>> Prices after: ${prices.length}');
   }
 
   Future restore(

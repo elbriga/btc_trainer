@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '/models/currency.dart';
 import '/models/price_data.dart';
@@ -13,22 +11,23 @@ class WalletViewModel extends ChangeNotifier {
   double _brlBalance = 0.0;
   double _usdBalance = 0.0;
   double _btcBalance = 0.0;
-  bool _priceUpdated = false;
 
   List<PriceData> _priceHistory = [];
   List<TransactionData> _transactions = [];
   bool _isLoading = true;
-  String? _errorMessage;
 
   double get brlBalance => _brlBalance;
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
-  bool get isPriceUpdated => _priceUpdated;
+  bool isPriceUpdated() {
+    return _priceHistory.last.timestamp.isAfter(
+      DateTime.now().subtract(const Duration(minutes: 4)),
+    );
+  }
 
   List<PriceData> get priceHistory => _priceHistory;
   List<TransactionData> get transactions => _transactions;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
 
   double get currentBtcPrice =>
       _priceHistory.isEmpty ? 0 : _priceHistory.last.price;
@@ -47,15 +46,10 @@ class WalletViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    try {
-      await loadDbData();
-      FlutterBackgroundService().on('update').listen(_onNewPriceFromBGService);
-    } catch (e) {
-      _errorMessage = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    await loadDbData();
+
+    _isLoading = false;
+    notifyListeners();
   }
 
   // Called by refresh
@@ -64,8 +58,6 @@ class WalletViewModel extends ChangeNotifier {
     _transactions = await dbHelper.getTransactions();
 
     _recalculateBalances();
-
-    _priceUpdated = false; // Wait for the next fetch
 
     notifyListeners();
   }
@@ -110,8 +102,6 @@ class WalletViewModel extends ChangeNotifier {
       print('--------=============>>>>>>>>>> Erro no Update!');
       return;
     }
-    _priceUpdated = true;
-
     _priceHistory.add(newPrice);
     // TODO : How to limit?
     // if (_priceHistory.length > 100) {

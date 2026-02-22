@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 GEMINI.md
 android/.kotlin/sessions/kotlin-compiler-*.salive
+android/app/google-services.json
+.env

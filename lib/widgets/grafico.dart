@@ -10,6 +10,7 @@ import '/theme/colors.dart';
 
 class Grafico extends StatelessWidget {
   final WalletViewModel viewModel;
+
   final Function()? onTap;
   late final double _minTS, _maxTS;
   late final double _minPrice, _maxPrice;
@@ -57,7 +58,8 @@ class Grafico extends StatelessWidget {
     }
 
     _minTS = minTS.toDouble();
-    _maxTS = maxTS.toDouble();
+    _maxTS = DateTime.now().millisecondsSinceEpoch
+        .toDouble(); // maxTS.toDouble();
     _minPrice = minPrice;
     _maxPrice = maxPrice;
     _minUsdPrice = minUsdPrice;
@@ -135,6 +137,12 @@ class Grafico extends StatelessWidget {
           ),
         )
         .toList();
+  }
+
+  void _onTap() {
+    //onTap!();
+    // TODO :: remover refresh
+    viewModel.loadDbData();
   }
 
   @override
@@ -269,14 +277,13 @@ class Grafico extends StatelessWidget {
             top: 8,
             child: Text(CurrencyFormat.brl(_maxUsdPrice), style: styleLegenda),
           ),
-          if (onTap != null)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: onTap,
-                behavior: HitTestBehavior.translucent,
-                child: Container(),
-              ),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _onTap,
+              behavior: HitTestBehavior.translucent,
+              child: Container(),
             ),
+          ),
         ],
       ),
     );

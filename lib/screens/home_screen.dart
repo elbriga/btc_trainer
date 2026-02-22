@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
 import '/widgets/online_display.dart';
@@ -22,20 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _startBackgroundService();
-  }
-
-  void _startBackgroundService() async {
-    final service = FlutterBackgroundService();
-    var isRunning = await service.isRunning();
-    if (!isRunning) {
-      service.startService();
-    }
-  }
-
   Future<void> _gotoScreen(Widget screen) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
@@ -59,9 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
             return const Center(child: CircularProgressIndicator());
-          }
-          if (viewModel.errorMessage != null) {
-            return Center(child: Text('Erro: ${viewModel.errorMessage}'));
           }
           return SingleChildScrollView(
             child: Padding(
@@ -138,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(BuildContext context, WalletViewModel viewModel) {
-    if (!viewModel.isPriceUpdated) {
+    if (!viewModel.isPriceUpdated()) {
       return Center(
         child: Row(
           spacing: 15,
