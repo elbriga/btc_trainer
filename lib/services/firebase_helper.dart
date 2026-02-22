@@ -5,10 +5,14 @@ class FirebaseHelper {
   static final FirebaseHelper instance = FirebaseHelper._init();
   FirebaseHelper._init();
 
-  CollectionReference<Map<String, dynamic>> _getFBCollection({
-    String collectionName = 'prices',
-  }) {
-    return FirebaseFirestore.instance.collection(collectionName);
+  Function? onNewPrice;
+
+  Future<List<PriceData>> getLastPrices() async {
+    var prices = await getPrices(last: 30);
+
+    if (onNewPrice != null) onNewPrice!(prices);
+
+    return prices;
   }
 
   Future<List<PriceData>> getPrices({int last = 0}) async {
@@ -33,5 +37,11 @@ class FirebaseHelper {
     }
 
     return prices;
+  }
+
+  CollectionReference<Map<String, dynamic>> _getFBCollection({
+    String collectionName = 'prices',
+  }) {
+    return FirebaseFirestore.instance.collection(collectionName);
   }
 }

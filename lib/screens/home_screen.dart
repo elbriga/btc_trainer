@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '/services/firebase_helper.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 import '/widgets/online_display.dart';
 import '/widgets/balance_display.dart';
@@ -21,6 +23,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
+      FirebaseHelper.instance.getLastPrices();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _gotoScreen(Widget screen) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }

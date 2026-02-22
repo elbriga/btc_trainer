@@ -4,6 +4,7 @@ import '/models/currency.dart';
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
 import '/services/database_helper.dart';
+import '/services/firebase_helper.dart';
 
 class WalletViewModel extends ChangeNotifier {
   final dbHelper = DatabaseHelper.instance;
@@ -47,6 +48,8 @@ class WalletViewModel extends ChangeNotifier {
     notifyListeners();
 
     await loadDbData();
+
+    FirebaseHelper.instance.onNewPrice = _onNewPriceFromBGService;
 
     _isLoading = false;
     notifyListeners();
@@ -93,20 +96,13 @@ class WalletViewModel extends ChangeNotifier {
     return ((lastPrice - initPrice) / initPrice) * 100;
   }
 
-  Future _onNewPriceFromBGService(Map<String, dynamic>? event) async {
-    if (event == null) return;
-
-    final newPrice = PriceData.fromMap(event);
-
-    if (newPrice.price <= 0.0 || newPrice.dollarPrice <= 0.0) {
-      print('--------=============>>>>>>>>>> Erro no Update!');
-      return;
+  Future _onNewPriceFromBGService(List<PriceData> lastPrices) async {
+    for (var pd in lastPrices) {
+      if (!_priceHistory.any((element) => element.timestamp == pd.timestamp)) {
+        _priceHistory.add(pd);
+      }
     }
-    _priceHistory.add(newPrice);
-    // TODO : How to limit?
-    // if (_priceHistory.length > 100) {
-    //   _priceHistory.removeAt(0);
-    // }
+
     notifyListeners();
   }
 
