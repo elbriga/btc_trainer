@@ -72,11 +72,20 @@ class _GraficoState extends State<Grafico> {
         .toList();
   }
 
-  List<FlSpot> _getChartSpots(List<PriceData> priceHistory, int minTS) {
+  List<FlSpot> _getChartSpots(
+    List<PriceData> priceHistory, {
+    int minTS = 0,
+    int maxTS = 0,
+  }) {
     final List<FlSpot> spots = [];
     DateTime cutoff = DateTime.fromMillisecondsSinceEpoch(minTS);
+    DateTime cuton = DateTime.fromMillisecondsSinceEpoch(maxTS);
     for (var pd in priceHistory) {
-      if (pd.timestamp.isBefore(cutoff)) continue;
+      if ((minTS != 0 && pd.timestamp.isBefore(cutoff)) ||
+          (maxTS != 0 && pd.timestamp.isAfter(cuton))) {
+        continue;
+      }
+
       spots.add(
         FlSpot(pd.timestamp.millisecondsSinceEpoch.toDouble(), pd.price),
       );
@@ -136,6 +145,10 @@ class _GraficoState extends State<Grafico> {
       fontWeight: FontWeight.bold,
     );
 
+    int tsOntem = DateTime.now()
+        .subtract(Duration(hours: 24))
+        .millisecondsSinceEpoch;
+
     return AspectRatio(
       aspectRatio: 2.2,
       child: Stack(
@@ -174,7 +187,8 @@ class _GraficoState extends State<Grafico> {
                 LineChartBarData(
                   spots: _getChartSpots(
                     widget.viewModel.priceHistory,
-                    minTS.toInt(),
+                    minTS: minTS.toInt(),
+                    maxTS: tsOntem,
                   ),
                   color: AppColors.primary,
                   barWidth: 3,
@@ -183,6 +197,20 @@ class _GraficoState extends State<Grafico> {
                   belowBarData: BarAreaData(
                     show: true,
                     color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                LineChartBarData(
+                  spots: _getChartSpots(
+                    widget.viewModel.priceHistory,
+                    minTS: tsOntem,
+                  ),
+                  color: Colors.blue,
+                  barWidth: 3,
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: Colors.blue.withValues(alpha: 0.3),
                   ),
                 ),
               ],
