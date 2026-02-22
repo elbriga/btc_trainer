@@ -35,9 +35,10 @@ class WalletViewModel extends ChangeNotifier {
   double get currentUsdBrlPrice =>
       _priceHistory.isEmpty ? 0 : _priceHistory.last.dollarPrice;
 
-  double get quantoVeioDoCeu => _transactions
-      .map((t) => (t.from == Currency.heaven) ? t.amount : 0.0)
-      .reduce((a, b) => a + b);
+  double get quantoVeioDoCeu => _transactions.fold(
+    0.0,
+    (soma, t) => soma + (t.from == Currency.heaven ? t.amount : 0.0),
+  );
 
   WalletViewModel() {
     _initialize();
@@ -57,14 +58,19 @@ class WalletViewModel extends ChangeNotifier {
 
   DateTime getFirstBtcTransaction() {
     DateTime? first;
+    DateTime ontem = DateTime.now().subtract(const Duration(hours: 24));
+
     for (var t in _transactions.reversed) {
       if (t.to == Currency.btc) {
         first = t.timestamp.subtract(Duration(hours: 1));
+        if (first.isAfter(ontem)) {
+          first = ontem;
+        }
         break;
       }
     }
 
-    return first ?? DateTime.now().subtract(const Duration(days: 3));
+    return first ?? ontem;
   }
 
   // Called by refresh
