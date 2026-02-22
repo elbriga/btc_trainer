@@ -52,7 +52,7 @@ class OnlineDisplay extends StatelessWidget {
                     Text('Resultado'),
                     Text(
                       CurrencyFormat.brl(result),
-                      style: (result > 0.0)
+                      style: (result >= 0.0)
                           ? textTheme.bodyLarge
                           : textTheme.headlineLarge,
                     ),
