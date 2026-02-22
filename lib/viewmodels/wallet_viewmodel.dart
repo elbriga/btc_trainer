@@ -57,8 +57,18 @@ class WalletViewModel extends ChangeNotifier {
 
   // Called by refresh
   Future loadDbData() async {
-    _priceHistory = await dbHelper.getPrices();
     _transactions = await dbHelper.getTransactions();
+
+    DateTime? first;
+    for (var t in _transactions) {
+      if (t.to == Currency.btc) {
+        first = t.timestamp;
+        break;
+      }
+    }
+    first ??= DateTime.now().subtract(const Duration(days: 3));
+
+    _priceHistory = await dbHelper.getPrices(first);
 
     _recalculateBalances();
 
@@ -120,7 +130,7 @@ class WalletViewModel extends ChangeNotifier {
     _usdBalance = 0.0;
     _btcBalance = 0.0;
 
-    for (final transaction in _transactions.reversed) {
+    for (final transaction in _transactions) {
       if (transaction.type == TransactionType.buy) {
         if (transaction.from == Currency.heaven &&
             transaction.to == Currency.brl) {

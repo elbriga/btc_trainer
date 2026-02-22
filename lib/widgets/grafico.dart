@@ -16,39 +16,32 @@ class Grafico extends StatelessWidget {
   late final double _minPrice, _maxPrice;
 
   Grafico(this.viewModel, {this.onTap, super.key}) {
-    double minPrice, maxPrice;
-    int minTS, maxTS;
-
-    if (viewModel.priceHistory.isEmpty) {
-      minTS = 0;
-      maxTS = 0;
-      minPrice = 0;
-      maxPrice = 0;
-    } else {
-      minTS = -1 >>> 1; // int max
-      maxTS = 0;
+    double minPrice = 0, maxPrice = 0;
+    if (viewModel.priceHistory.isNotEmpty) {
       minPrice = double.maxFinite;
-      maxPrice = -double.maxFinite;
-      for (var p = 0; p < viewModel.priceHistory.length; p++) {
-        var ts = viewModel.priceHistory[p].timestamp.millisecondsSinceEpoch;
-        if (ts < minTS) minTS = ts;
-        if (ts > maxTS) maxTS = ts;
-
-        var price = viewModel.priceHistory[p].price;
-        if (price < minPrice) minPrice = price;
-        if (price > maxPrice) maxPrice = price;
+      for (var pd in viewModel.priceHistory) {
+        if (pd.price < minPrice) minPrice = pd.price;
+        if (pd.price > maxPrice) maxPrice = pd.price;
       }
       if (minPrice == maxPrice) {
         minPrice = minPrice - 5;
         maxPrice = maxPrice + 5;
       }
     }
-
-    _minTS = minTS.toDouble();
-    _maxTS = DateTime.now().millisecondsSinceEpoch
-        .toDouble(); // maxTS.toDouble();
     _minPrice = minPrice;
     _maxPrice = maxPrice;
+
+    DateTime? first;
+    for (var t in viewModel.transactions) {
+      if (t.to == Currency.btc) {
+        first = t.timestamp;
+        break;
+      }
+    }
+    first ??= DateTime.now().subtract(const Duration(days: 3));
+
+    _minTS = first.millisecondsSinceEpoch.toDouble();
+    _maxTS = DateTime.now().millisecondsSinceEpoch.toDouble();
   }
 
   List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
@@ -220,7 +213,7 @@ class Grafico extends StatelessWidget {
           if (onTap != null)
             Positioned.fill(
               child: GestureDetector(
-                onTap: onTap,
+                onTap: viewModel.loadDbData,
                 behavior: HitTestBehavior.translucent,
                 child: Container(),
               ),

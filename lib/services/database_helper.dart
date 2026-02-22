@@ -28,7 +28,7 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  Future<List<PriceData>> getPrices() async {
+  Future<List<PriceData>> getPrices(DateTime cutoff) async {
     final List<PriceData> prices = [];
 
     final results = await Future.wait([
@@ -43,11 +43,10 @@ class DatabaseHelper {
     final today = results[0];
     final history = results[1];
 
-    final agora = DateTime.now();
-    final ontem = DateTime(agora.year, agora.month, agora.day - 1);
+    final ontem = DateTime.now().subtract(const Duration(hours: 24));
     for (var h in history) {
       final pd = PriceData.fromMap(h);
-      if (pd.timestamp.isBefore(ontem)) {
+      if (pd.timestamp.isBefore(ontem) && pd.timestamp.isAfter(cutoff)) {
         prices.add(pd);
       }
     }
@@ -79,7 +78,7 @@ class DatabaseHelper {
 
   Future<List> _fetchHistoryPrices() async {
     final response = await _fetchHttp(
-      'https://charts.bitcoin.com/api/v1/charts/pi-cycle-top?interval=hourly&timespan=1y',
+      'https://charts.bitcoin.com/api/v1/charts/rainbow?interval=daily',
     );
     final data = json.decode(response.body);
 
@@ -89,7 +88,7 @@ class DatabaseHelper {
 
   // Called on app start
   Future checkUpdateDB() async {
-    //_dropPricesTable();
+    _dropPricesTable();
     _check1stFromHeaven();
   }
 
@@ -162,7 +161,7 @@ class DatabaseHelper {
 
   Future<List<TransactionData>> getTransactions() async {
     final db = await instance.database;
-    final maps = await db.query('transactions', orderBy: 'timestamp DESC');
+    final maps = await db.query('transactions', orderBy: 'timestamp ASC');
 
     if (maps.isNotEmpty) {
       return maps.map((map) => TransactionData.fromMap(map)).toList();
