@@ -97,7 +97,7 @@ class WalletViewModel extends ChangeNotifier {
   }
 
   Future _onNewPriceFromBGService(List<PriceData> lastPrices) async {
-    for (var pd in lastPrices) {
+    for (var pd in lastPrices.reversed) {
       if (!_priceHistory.any((element) => element.timestamp == pd.timestamp)) {
         _priceHistory.add(pd);
       }
