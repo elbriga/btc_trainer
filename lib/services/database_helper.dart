@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'package:btc_trainer/services/firebase_helper.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
@@ -28,46 +29,30 @@ class DatabaseHelper {
   }
 
   Future<List<PriceData>> getPrices() async {
-    /*
+    final List<PriceData> prices = [];
+
     final results = await Future.wait([
       (() async {
-        try {
-          return await _fetchBtcPrice();
-        } catch (e) {
-          print('=================>>>>>>>>> Erro BTC: $e');
-          return _currBtcPrice;
-        }
+        return await FirebaseHelper.instance.getPrices();
       })(),
       (() async {
-        try {
-          // 1st API
-          return await _fetchUsdBrlPrice2();
-        } catch (e) {
-          print('=============>>>>>>>>>>> Erro USD2: $e');
-
-          try {
-            // 2nd API backup
-            return await _fetchUsdBrlPrice();
-          } catch (e) {
-            print('=============>>>>>>>>>>> Erro USD1: $e');
-          }
-
-          return _currUsdPrice;
-        }
+        return await _fetchHistoryPrices();
       })(),
     ]);
-    */
-    final List history = await _fetchHistoryPrices();
+
+    final today = results[0];
+    final history = results[1];
 
     final agora = DateTime.now();
     final ontem = DateTime(agora.year, agora.month, agora.day - 1);
-
-    final List<PriceData> prices = [];
     for (var h in history) {
       final pd = PriceData.fromMap(h);
       if (pd.timestamp.isBefore(ontem)) {
         prices.add(pd);
       }
+    }
+    for (PriceData pd in today) {
+      prices.add(pd);
     }
 
     return prices;

@@ -1,12 +1,32 @@
-import 'dart:io';
-import 'dart:async';
-import 'dart:convert';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:http/http.dart' as http;
+import 'package:btc_trainer/models/price_data.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '/models/price_data.dart';
-import '/models/transaction_data.dart';
-import '/models/currency.dart';
+class FirebaseHelper {
+  static final FirebaseHelper instance = FirebaseHelper._init();
+  FirebaseHelper._init();
 
-class FirebaseHelper {}
+  CollectionReference<Map<String, dynamic>> _getFBCollection({
+    String collectionName = 'prices',
+  }) {
+    return FirebaseFirestore.instance.collection(collectionName);
+  }
+
+  Future<List<PriceData>> getPrices() async {
+    final snapshot = await _getFBCollection().get();
+
+    final List<PriceData> prices = [];
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+
+      prices.add(
+        PriceData(
+          price: (data['btc_usd'] as num).toDouble(),
+          dollarPrice: (data['usd_brl'] as num).toDouble(),
+          timestamp: DateTime.parse(doc.id),
+        ),
+      );
+    }
+
+    return prices;
+  }
+}

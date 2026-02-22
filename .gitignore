@@ -47,3 +47,4 @@ GEMINI.md
 android/.kotlin/sessions/kotlin-compiler-*.salive
 android/app/google-services.json
 .env
+lib/firebase_options.dart
