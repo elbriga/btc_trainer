@@ -72,13 +72,16 @@ class _GraficoState extends State<Grafico> {
         .toList();
   }
 
-  List<FlSpot> _getChartSpots(List<PriceData> priceHistory) {
-    return priceHistory
-        .map(
-          (pd) =>
-              FlSpot(pd.timestamp.millisecondsSinceEpoch.toDouble(), pd.price),
-        )
-        .toList();
+  List<FlSpot> _getChartSpots(List<PriceData> priceHistory, int minTS) {
+    final List<FlSpot> spots = [];
+    DateTime cutoff = DateTime.fromMillisecondsSinceEpoch(minTS);
+    for (var pd in priceHistory) {
+      if (pd.timestamp.isBefore(cutoff)) continue;
+      spots.add(
+        FlSpot(pd.timestamp.millisecondsSinceEpoch.toDouble(), pd.price),
+      );
+    }
+    return spots;
   }
 
   void _toggle24h() {
@@ -169,7 +172,10 @@ class _GraficoState extends State<Grafico> {
               maxY: maxPrice + paddingDelta,
               lineBarsData: [
                 LineChartBarData(
-                  spots: _getChartSpots(widget.viewModel.priceHistory),
+                  spots: _getChartSpots(
+                    widget.viewModel.priceHistory,
+                    minTS.toInt(),
+                  ),
                   color: AppColors.primary,
                   barWidth: 3,
                   isStrokeCapRound: true,
