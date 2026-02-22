@@ -220,7 +220,7 @@ class Grafico extends StatelessWidget {
           if (onTap != null)
             Positioned.fill(
               child: GestureDetector(
-                onTap: onTap,
+                onTap: viewModel.loadDbData,
                 behavior: HitTestBehavior.translucent,
                 child: Container(),
               ),

@@ -11,8 +11,13 @@ class FirebaseHelper {
     return FirebaseFirestore.instance.collection(collectionName);
   }
 
-  Future<List<PriceData>> getPrices() async {
-    final snapshot = await _getFBCollection().get();
+  Future<List<PriceData>> getPrices({int last = 0}) async {
+    final snapshot = (last == 0)
+        ? await _getFBCollection().get()
+        : await _getFBCollection()
+              .orderBy(FieldPath.documentId, descending: true)
+              .limit(last)
+              .get();
 
     final List<PriceData> prices = [];
     for (var doc in snapshot.docs) {
