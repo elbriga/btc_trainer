@@ -89,7 +89,7 @@ class DatabaseHelper {
   // Called on app start
   Future checkUpdateDB() async {
     _dropPricesTable();
-    _check1stFromHeaven();
+    await _check1stFromHeaven();
   }
 
   Future _dropPricesTable() async {
@@ -154,7 +154,7 @@ class DatabaseHelper {
     return transaction;
   }
 
-  Future<void> insertTransaction(TransactionData transaction) async {
+  Future insertTransaction(TransactionData transaction) async {
     final db = await instance.database;
     await db.insert('transactions', transaction.toMap());
   }
