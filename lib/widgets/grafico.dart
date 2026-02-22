@@ -8,41 +8,17 @@ import '/models/transaction_data.dart';
 import '/models/price_data.dart';
 import '/theme/colors.dart';
 
-class Grafico extends StatelessWidget {
+class Grafico extends StatefulWidget {
   final WalletViewModel viewModel;
 
-  final Function()? onTap;
-  late final double _minTS, _maxTS;
-  late final double _minPrice, _maxPrice;
+  const Grafico(this.viewModel, {super.key});
 
-  Grafico(this.viewModel, {this.onTap, super.key}) {
-    double minPrice = 0, maxPrice = 0;
-    if (viewModel.priceHistory.isNotEmpty) {
-      minPrice = double.maxFinite;
-      for (var pd in viewModel.priceHistory) {
-        if (pd.price < minPrice) minPrice = pd.price;
-        if (pd.price > maxPrice) maxPrice = pd.price;
-      }
-      if (minPrice == maxPrice) {
-        minPrice = minPrice - 5;
-        maxPrice = maxPrice + 5;
-      }
-    }
-    _minPrice = minPrice;
-    _maxPrice = maxPrice;
+  @override
+  State<Grafico> createState() => _GraficoState();
+}
 
-    DateTime? first;
-    for (var t in viewModel.transactions) {
-      if (t.to == Currency.btc) {
-        first = t.timestamp;
-        break;
-      }
-    }
-    first ??= DateTime.now().subtract(const Duration(days: 3));
-
-    _minTS = first.millisecondsSinceEpoch.toDouble();
-    _maxTS = DateTime.now().millisecondsSinceEpoch.toDouble();
-  }
+class _GraficoState extends State<Grafico> {
+  bool _is24h = false;
 
   List<ScatterSpot> _generateTransactionSpots(WalletViewModel viewModel) {
     final List<ScatterSpot> spots = [];
@@ -106,12 +82,50 @@ class Grafico extends StatelessWidget {
         .toList();
   }
 
+  void _toggle24h() {
+    setState(() {
+      _is24h = !_is24h;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final paddingDelta = (_maxPrice - _minPrice) / 10;
+    DateTime? first;
+    if (_is24h) {
+      first = DateTime.now().subtract(const Duration(hours: 24));
+    } else {
+      for (var t in widget.viewModel.transactions) {
+        if (t.to == Currency.btc) {
+          first = t.timestamp;
+          break;
+        }
+      }
+      first ??= DateTime.now().subtract(const Duration(days: 3));
+    }
+    final minTS = first.millisecondsSinceEpoch.toDouble();
+    final maxTS = DateTime.now().millisecondsSinceEpoch.toDouble();
+
+    double minPrice = 0, maxPrice = 0;
+    if (widget.viewModel.priceHistory.isNotEmpty) {
+      minPrice = double.maxFinite;
+      for (var pd in widget.viewModel.priceHistory) {
+        if (pd.timestamp.isBefore(first)) {
+          continue;
+        }
+
+        if (pd.price < minPrice) minPrice = pd.price;
+        if (pd.price > maxPrice) maxPrice = pd.price;
+      }
+      if (minPrice == maxPrice) {
+        minPrice = minPrice - 5;
+        maxPrice = maxPrice + 5;
+      }
+    }
+
+    final paddingDelta = (maxPrice - minPrice) / 10;
     //final TextTheme textTheme = Theme.of(context).textTheme;
 
-    if (viewModel.priceHistory.isEmpty) {
+    if (widget.viewModel.priceHistory.isEmpty) {
       return const SizedBox(
         height: 150,
         child: Center(child: Text("Ainda não há dados de preço.")),
@@ -120,7 +134,7 @@ class Grafico extends StatelessWidget {
 
     final firstDate = DateFormat(
       'dd/MM/yyyy',
-    ).format(viewModel.priceHistory.first.timestamp);
+    ).format(widget.viewModel.priceHistory.first.timestamp);
 
     const styleLegenda = TextStyle(
       color: Colors.black,
@@ -136,13 +150,13 @@ class Grafico extends StatelessWidget {
             LineChartData(
               gridData: const FlGridData(show: false),
               titlesData: const FlTitlesData(show: false),
-              minX: _minTS,
-              maxX: _maxTS,
+              minX: minTS,
+              maxX: maxTS,
               minY: 0,
               maxY: 1,
               lineBarsData: [
                 LineChartBarData(
-                  spots: _getMonthSpots(viewModel.priceHistory),
+                  spots: _getMonthSpots(widget.viewModel.priceHistory),
                   color: AppColors.textSecondary.withAlpha(100),
                   barWidth: 2,
                   dotData: const FlDotData(show: false),
@@ -158,13 +172,13 @@ class Grafico extends StatelessWidget {
                 show: true,
                 border: Border.all(color: const Color(0xff37434d), width: 1),
               ),
-              minX: _minTS,
-              maxX: _maxTS,
-              minY: _minPrice - paddingDelta,
-              maxY: _maxPrice + paddingDelta,
+              minX: minTS,
+              maxX: maxTS,
+              minY: minPrice - paddingDelta,
+              maxY: maxPrice + paddingDelta,
               lineBarsData: [
                 LineChartBarData(
-                  spots: _getChartSpots(viewModel.priceHistory),
+                  spots: _getChartSpots(widget.viewModel.priceHistory),
                   color: AppColors.primary,
                   barWidth: 3,
                   isStrokeCapRound: true,
@@ -179,11 +193,11 @@ class Grafico extends StatelessWidget {
           ),
           ScatterChart(
             ScatterChartData(
-              scatterSpots: _generateTransactionSpots(viewModel),
-              minX: _minTS,
-              maxX: _maxTS,
-              minY: _minPrice - paddingDelta,
-              maxY: _maxPrice + paddingDelta,
+              scatterSpots: _generateTransactionSpots(widget.viewModel),
+              minX: minTS,
+              maxX: maxTS,
+              minY: minPrice - paddingDelta,
+              maxY: maxPrice + paddingDelta,
               gridData: const FlGridData(show: false),
               titlesData: const FlTitlesData(show: false),
               borderData: FlBorderData(show: false),
@@ -198,7 +212,7 @@ class Grafico extends StatelessWidget {
             left: 8,
             bottom: 8,
             child: Text(
-              'Min: ${CurrencyFormat.usd(_minPrice)}',
+              'Min: ${CurrencyFormat.usd(minPrice)}',
               style: styleLegenda,
             ),
           ),
@@ -206,18 +220,23 @@ class Grafico extends StatelessWidget {
             left: 8,
             top: 8,
             child: Text(
-              'Máx: ${CurrencyFormat.usd(_maxPrice)}',
+              'Máx: ${CurrencyFormat.usd(maxPrice)}',
               style: styleLegenda,
             ),
           ),
-          if (onTap != null)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: viewModel.loadDbData,
-                behavior: HitTestBehavior.translucent,
-                child: Container(),
-              ),
+          if (_is24h)
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Text('Últimas 24h', style: styleLegenda),
             ),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _toggle24h,
+              behavior: HitTestBehavior.translucent,
+              child: Container(),
+            ),
+          ),
         ],
       ),
     );
