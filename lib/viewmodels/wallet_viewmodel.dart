@@ -60,9 +60,9 @@ class WalletViewModel extends ChangeNotifier {
     _transactions = await dbHelper.getTransactions();
 
     DateTime? first;
-    for (var t in _transactions) {
+    for (var t in _transactions.reversed) {
       if (t.to == Currency.btc) {
-        first = t.timestamp;
+        first = t.timestamp.subtract(Duration(hours: 1));
         break;
       }
     }
@@ -130,7 +130,7 @@ class WalletViewModel extends ChangeNotifier {
     _usdBalance = 0.0;
     _btcBalance = 0.0;
 
-    for (final transaction in _transactions) {
+    for (final transaction in _transactions.reversed) {
       if (transaction.type == TransactionType.buy) {
         if (transaction.from == Currency.heaven &&
             transaction.to == Currency.brl) {

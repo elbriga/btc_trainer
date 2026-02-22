@@ -161,7 +161,7 @@ class DatabaseHelper {
 
   Future<List<TransactionData>> getTransactions() async {
     final db = await instance.database;
-    final maps = await db.query('transactions', orderBy: 'timestamp ASC');
+    final maps = await db.query('transactions', orderBy: 'timestamp DESC');
 
     if (maps.isNotEmpty) {
       return maps.map((map) => TransactionData.fromMap(map)).toList();

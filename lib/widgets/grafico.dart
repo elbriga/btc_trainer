@@ -28,16 +28,15 @@ class _GraficoState extends State<Grafico> {
         continue;
       }
 
+      double? closestPrice;
       int closestIndex = -1;
       Duration minDuration = const Duration(days: 99999);
-      for (int i = 0; i < viewModel.priceHistory.length; i++) {
-        final duration = viewModel.priceHistory[i].timestamp
-            .difference(transaction.timestamp)
-            .abs();
+      for (var pd in viewModel.priceHistory) {
+        final duration = pd.timestamp.difference(transaction.timestamp).abs();
         if (duration < minDuration) {
           minDuration = duration;
-          closestIndex =
-              viewModel.priceHistory[i].timestamp.millisecondsSinceEpoch;
+          closestIndex = pd.timestamp.millisecondsSinceEpoch;
+          closestPrice = pd.price;
         }
       }
       if (closestIndex == -1) {
@@ -47,7 +46,7 @@ class _GraficoState extends State<Grafico> {
       spots.add(
         ScatterSpot(
           closestIndex.toDouble(),
-          transaction.price,
+          closestPrice ?? transaction.price,
           dotPainter: FlDotCirclePainter(
             radius: 3,
             color: transaction.type == TransactionType.buy
@@ -94,7 +93,7 @@ class _GraficoState extends State<Grafico> {
     if (_is24h) {
       first = DateTime.now().subtract(const Duration(hours: 24));
     } else {
-      for (var t in widget.viewModel.transactions) {
+      for (var t in widget.viewModel.transactions.reversed) {
         if (t.to == Currency.btc) {
           first = t.timestamp;
           break;
