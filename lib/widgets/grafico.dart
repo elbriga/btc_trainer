@@ -89,18 +89,10 @@ class _GraficoState extends State<Grafico> {
 
   @override
   Widget build(BuildContext context) {
-    DateTime? first;
-    if (_is24h) {
-      first = DateTime.now().subtract(const Duration(hours: 24));
-    } else {
-      for (var t in widget.viewModel.transactions.reversed) {
-        if (t.to == Currency.btc) {
-          first = t.timestamp;
-          break;
-        }
-      }
-      first ??= DateTime.now().subtract(const Duration(days: 3));
-    }
+    DateTime first = _is24h
+        ? DateTime.now().subtract(const Duration(hours: 24))
+        : widget.viewModel.getFirstBtcTransaction();
+
     final minTS = first.millisecondsSinceEpoch.toDouble();
     final maxTS = DateTime.now().millisecondsSinceEpoch.toDouble();
 
