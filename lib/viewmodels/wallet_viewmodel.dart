@@ -28,7 +28,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
     return _priceHistory.isEmpty
         ? false
         : _priceHistory.last.timestamp.isAfter(
-            DateTime.now().subtract(const Duration(minutes: 4)),
+            DateTime.now().subtract(const Duration(minutes: 3)),
           );
   }
 
@@ -84,8 +84,8 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      final tooooLong = DateTime.now().subtract(Duration(minutes: 30));
-      final tooLong = DateTime.now().subtract(Duration(minutes: 1));
+      final tooooLong = DateTime.now().subtract(const Duration(minutes: 30));
+      final tooLong = DateTime.now().subtract(const Duration(minutes: 1));
 
       if (_lastPricesFetch == null || _lastPricesFetch!.isBefore(tooooLong)) {
         // fetch all price data again
