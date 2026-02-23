@@ -190,7 +190,7 @@ class _GraficoState extends State<Grafico> {
                     maxTS: tsOntem,
                   ),
                   color: AppColors.primary,
-                  barWidth: 3,
+                  barWidth: 2,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
@@ -204,7 +204,7 @@ class _GraficoState extends State<Grafico> {
                     minTS: tsOntem,
                   ),
                   color: AppColors.secondary,
-                  barWidth: 3,
+                  barWidth: 2,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
