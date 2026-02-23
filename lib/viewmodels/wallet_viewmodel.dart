@@ -20,10 +20,13 @@ class WalletViewModel extends ChangeNotifier {
   double get brlBalance => _brlBalance;
   double get usdBalance => _usdBalance;
   double get btcBalance => _btcBalance;
+
   bool isPriceUpdated() {
-    return _priceHistory.last.timestamp.isAfter(
-      DateTime.now().subtract(const Duration(minutes: 4)),
-    );
+    return _priceHistory.isEmpty
+        ? false
+        : _priceHistory.last.timestamp.isAfter(
+            DateTime.now().subtract(const Duration(minutes: 4)),
+          );
   }
 
   List<PriceData> get priceHistory => _priceHistory;
@@ -62,7 +65,7 @@ class WalletViewModel extends ChangeNotifier {
 
     for (var t in _transactions.reversed) {
       if (t.to == Currency.btc) {
-        first = t.timestamp.subtract(Duration(hours: 1));
+        first = t.timestamp;
         if (first.isAfter(ontem)) {
           first = ontem;
         }

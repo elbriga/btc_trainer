@@ -28,7 +28,7 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  Future<List<PriceData>> getPrices(DateTime cutoff) async {
+  Future<List<PriceData>> getPrices(DateTime firstTX) async {
     final List<PriceData> prices = [];
 
     final results = await Future.wait([
@@ -36,7 +36,7 @@ class DatabaseHelper {
         return await FirebaseHelper.instance.getPrices();
       })(),
       (() async {
-        return await _fetchHistoryPrices();
+        return await _fetchHistoryPrices(firstTX);
       })(),
     ]);
 
@@ -46,7 +46,7 @@ class DatabaseHelper {
     final ontem = DateTime.now().subtract(const Duration(hours: 24));
     for (var h in history) {
       final pd = PriceData.fromMap(h);
-      if (pd.timestamp.isBefore(ontem) && pd.timestamp.isAfter(cutoff)) {
+      if (pd.timestamp.isBefore(ontem) && pd.timestamp.isAfter(firstTX)) {
         prices.add(pd);
       }
     }
@@ -76,9 +76,14 @@ class DatabaseHelper {
     }
   }
 
-  Future<List> _fetchHistoryPrices() async {
+  Future<List> _fetchHistoryPrices(DateTime firstTX) async {
+    final changeAPIDate = DateTime.now().subtract(Duration(days: 50));
+    var url = firstTX.isBefore(changeAPIDate)
+        ? 'rainbow?interval=daily'
+        : 'pi-cycle-top?interval=hourly&limit=365';
+
     final response = await _fetchHttp(
-      'https://charts.bitcoin.com/api/v1/charts/rainbow?interval=daily',
+      'https://charts.bitcoin.com/api/v1/charts/$url',
     );
     final data = json.decode(response.body);
 
@@ -88,7 +93,8 @@ class DatabaseHelper {
 
   // Called on app start
   Future checkUpdateDB() async {
-    _dropPricesTable();
+    await _dropPricesTable();
+    // await insertTestData();
     await _check1stFromHeaven();
   }
 
@@ -110,9 +116,7 @@ class DatabaseHelper {
         ? null
         : TransactionData.fromMap(mapFirstTx.first);
     if (tx == null || tx.from != Currency.heaven) {
-      //print('===>>> Add 1st BRL R\$ 50k!');
-
-      var new1stDate = tx == null
+      var new1stDate = (tx == null)
           ? DateTime.now()
           : DateTime(
               tx.timestamp.year,
@@ -224,5 +228,36 @@ class DatabaseHelper {
 
       throw ('Erro ao restaurar a base!');
     }
+  }
+
+  Future insertTestData() async {
+    final db = await instance.database;
+    await db.rawQuery('DELETE FROM transactions');
+
+    final brlAmount = 50000.00;
+    final dollarPrice = 5.20;
+    await insertTransaction(
+      TransactionData(
+        type: TransactionType.buy,
+        from: Currency.brl,
+        to: Currency.usd,
+        amount: brlAmount / dollarPrice,
+        price: dollarPrice,
+        timestamp: DateTime.now().subtract(Duration(days: 45, minutes: 30)),
+      ),
+    );
+
+    final usdAmount = brlAmount / dollarPrice;
+    final btcPrice = 68217.00;
+    await insertTransaction(
+      TransactionData(
+        type: TransactionType.buy,
+        from: Currency.usd,
+        to: Currency.btc,
+        amount: usdAmount / btcPrice,
+        price: btcPrice,
+        timestamp: DateTime.now().subtract(Duration(days: 45, minutes: 2)),
+      ),
+    );
   }
 }
