@@ -55,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       await DatabaseHelper.instance.restore(
         result.files.single.path!,
-        onRestored: walletViewModel?.loadDbData,
+        onRestored: walletViewModel?.initialize,
       );
 
       if (!context.mounted) return;

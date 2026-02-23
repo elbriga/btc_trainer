@@ -248,15 +248,14 @@ class _GraficoState extends State<Grafico> {
               style: styleLegenda,
             ),
           ),
-          if (_is24h)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Text('Últimas 24h', style: styleLegenda),
-            ),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Text(_is24h ? '> Últimas 24h' : '>', style: styleLegenda),
+          ),
           Positioned.fill(
             child: GestureDetector(
-              onDoubleTap: widget.viewModel.loadDbData,
+              onDoubleTap: widget.viewModel.initialize,
               onTap: _toggle24h,
               behavior: HitTestBehavior.translucent,
               child: Container(),

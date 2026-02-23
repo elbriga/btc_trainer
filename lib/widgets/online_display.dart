@@ -16,11 +16,12 @@ class OnlineDisplay extends StatelessWidget {
     final priceBtcBrl =
         viewModel.currentBtcPrice * viewModel.currentUsdBrlPrice;
 
-    final result =
-        (viewModel.brlBalance +
-            (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
-            (viewModel.btcBalance * priceBtcBrl)) -
-        viewModel.quantoVeioDoCeu;
+    final result = viewModel.priceHistory.isEmpty
+        ? 0.0
+        : (viewModel.brlBalance +
+                  (viewModel.usdBalance * viewModel.currentUsdBrlPrice) +
+                  (viewModel.btcBalance * priceBtcBrl)) -
+              viewModel.quantoVeioDoCeu;
 
     Column buildVarBox(String title, double amount) {
       return Column(
@@ -28,7 +29,7 @@ class OnlineDisplay extends StatelessWidget {
           Text(title, style: textTheme.displaySmall),
           Text(
             '${amount > 0 ? '+' : ''}${amount.toStringAsFixed(2)}%',
-            style: (amount > 0.0)
+            style: (amount >= 0.0)
                 ? textTheme.bodyLarge?.copyWith(color: Colors.green)
                 : textTheme.bodyLarge?.copyWith(color: Colors.red),
           ),

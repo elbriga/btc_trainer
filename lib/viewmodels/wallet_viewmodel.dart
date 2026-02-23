@@ -44,19 +44,37 @@ class WalletViewModel extends ChangeNotifier {
   );
 
   WalletViewModel() {
-    _initialize();
+    initialize();
   }
 
-  Future<void> _initialize() async {
+  Future<void> initialize() async {
+    FirebaseHelper.instance.onNewPrice = null;
+
+    _priceHistory = [];
+    _transactions = [];
+
     _isLoading = true;
     notifyListeners();
 
-    await loadDbData();
-
-    FirebaseHelper.instance.onNewPrice = _onNewPriceFromBGService;
+    await _loadTransactionsData();
 
     _isLoading = false;
     notifyListeners();
+
+    await _loadPricesData();
+
+    FirebaseHelper.instance.onNewPrice = _onNewPriceFromBGService;
+    notifyListeners();
+  }
+
+  Future _loadTransactionsData() async {
+    _transactions = await dbHelper.getTransactions();
+    _recalculateBalances();
+  }
+
+  Future _loadPricesData() async {
+    DateTime firstTX = getFirstBtcTransaction();
+    _priceHistory = await dbHelper.getPrices(firstTX);
   }
 
   DateTime getFirstBtcTransaction() {
@@ -74,17 +92,6 @@ class WalletViewModel extends ChangeNotifier {
     }
 
     return first ?? ontem;
-  }
-
-  // Called by refresh
-  Future loadDbData() async {
-    _transactions = await dbHelper.getTransactions();
-
-    _priceHistory = await dbHelper.getPrices(getFirstBtcTransaction());
-
-    _recalculateBalances();
-
-    notifyListeners();
   }
 
   // called by BalanceDisplay Widget
