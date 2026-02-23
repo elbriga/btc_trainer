@@ -12,7 +12,9 @@ class TransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final isBuy = transaction.type == TransactionType.buy;
+
+    final isBuy = (transaction.type == TransactionType.buy);
+    final isFromHeaven = (transaction.from == Currency.heaven);
 
     final String amount = CurrencyFormat.format(
       transaction.amount,
@@ -39,12 +41,16 @@ class TransactionCard extends StatelessWidget {
     final subtitle = '@ $price / cada\n$date';
 
     final icon = Icon(
-      transaction.from == Currency.heaven
+      isFromHeaven
           ? Icons.cloud
           : isBuy
           ? Icons.arrow_upward
           : Icons.arrow_downward,
-      color: isBuy ? Colors.green : Colors.red,
+      color: isFromHeaven
+          ? Colors.blue
+          : isBuy
+          ? Colors.green
+          : Colors.red,
     );
 
     return Card(
