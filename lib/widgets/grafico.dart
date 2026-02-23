@@ -101,6 +101,13 @@ class _GraficoState extends State<Grafico> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.viewModel.priceHistory.isEmpty) {
+      return const SizedBox(
+        height: 150,
+        child: Center(child: Text("Ainda não há dados de preço.")),
+      );
+    }
+
     DateTime first = _is24h
         ? DateTime.now().subtract(const Duration(hours: 24))
         : widget.viewModel.getFirstBtcTransaction();
@@ -126,14 +133,6 @@ class _GraficoState extends State<Grafico> {
     }
 
     final paddingDelta = (maxPrice - minPrice) / 10;
-    //final TextTheme textTheme = Theme.of(context).textTheme;
-
-    if (widget.viewModel.priceHistory.isEmpty) {
-      return const SizedBox(
-        height: 150,
-        child: Center(child: Text("Ainda não há dados de preço.")),
-      );
-    }
 
     final firstDate = DateFormat(
       'dd/MM/yyyy',
