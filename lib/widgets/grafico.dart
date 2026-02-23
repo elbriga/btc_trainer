@@ -203,13 +203,13 @@ class _GraficoState extends State<Grafico> {
                     widget.viewModel.priceHistory,
                     minTS: tsOntem,
                   ),
-                  color: Colors.blue,
+                  color: AppColors.secondary,
                   barWidth: 3,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.blue.withValues(alpha: 0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -256,6 +256,7 @@ class _GraficoState extends State<Grafico> {
             ),
           Positioned.fill(
             child: GestureDetector(
+              onDoubleTap: widget.viewModel.loadDbData,
               onTap: _toggle24h,
               behavior: HitTestBehavior.translucent,
               child: Container(),
