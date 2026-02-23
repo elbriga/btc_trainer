@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '/services/firebase_helper.dart';
+// import '/services/database_helper.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 import '/widgets/online_display.dart';
 import '/widgets/balance_display.dart';
@@ -66,6 +67,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       appBar: AppBar(
         title: const Text('Simulador de Bitcoin'),
         actions: [
+          // IconButton(
+          //   icon: const Icon(Icons.refresh),
+          //   tooltip: 'Refresh',
+          //   onPressed: () {
+          //     DatabaseHelper.instance.checkUpdateDB();
+          //   },
+          // ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Configurações',
