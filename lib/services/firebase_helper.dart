@@ -5,14 +5,8 @@ class FirebaseHelper {
   static final FirebaseHelper instance = FirebaseHelper._init();
   FirebaseHelper._init();
 
-  Function? onNewPrice;
-
-  Future<List<PriceData>> getLastPrices() async {
-    var prices = await getPrices(last: 30);
-
-    if (onNewPrice != null) onNewPrice!(prices);
-
-    return prices;
+  Future<List<PriceData>> getLastPrices({int last = 30}) async {
+    return await getPrices(last: last);
   }
 
   Future<List<PriceData>> getPrices({int last = 0}) async {

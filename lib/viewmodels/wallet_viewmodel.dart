@@ -51,16 +51,22 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
     initialize();
   }
 
-  void _timerFunction(Timer? timer) {
+  void _timerFunction(Timer? timer) async {
     if (_priceHistory.isEmpty) {
       // safety check if we are initialized
       return;
     }
 
-    // This function will call the callback _onNewPriceFromBGService
-    FirebaseHelper.instance.getLastPrices();
+    var newPrices = await FirebaseHelper.instance.getLastPrices();
+    for (var pd in newPrices.reversed) {
+      if (_priceHistory.any((element) => element.timestamp == pd.timestamp)) {
+        continue;
+      }
+      _priceHistory.add(pd);
+    }
 
     _lastPricesFetch = DateTime.now();
+    notifyListeners();
   }
 
   void startTimer() {
@@ -100,9 +106,6 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> initialize() async {
-    // avoid a new price while initing
-    FirebaseHelper.instance.onNewPrice = null;
-
     _priceHistory = [];
     _transactions = [];
 
@@ -116,7 +119,6 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     await _loadPricesData();
 
-    FirebaseHelper.instance.onNewPrice = _onNewPriceFromBGService;
     notifyListeners();
   }
 
@@ -183,16 +185,6 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (initPrice == 0) return 0.0;
 
     return ((lastPrice - initPrice) / initPrice) * 100;
-  }
-
-  Future _onNewPriceFromBGService(List<PriceData> lastPrices) async {
-    for (var pd in lastPrices.reversed) {
-      if (!_priceHistory.any((element) => element.timestamp == pd.timestamp)) {
-        _priceHistory.add(pd);
-      }
-    }
-
-    notifyListeners();
   }
 
   Future<double> getHeavenIntervention() async {
