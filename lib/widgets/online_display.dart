@@ -23,6 +23,13 @@ class OnlineDisplay extends StatelessWidget {
                   (viewModel.btcBalance * priceBtcBrl)) -
               viewModel.quantoVeioDoCeu;
 
+    final numerator =
+        viewModel.quantoVeioDoCeu -
+        viewModel.brlBalance -
+        (viewModel.usdBalance * viewModel.currentUsdBrlPrice);
+    final denominator = viewModel.btcBalance * viewModel.currentUsdBrlPrice;
+    final targetPrice = (denominator == 0) ? 0.0 : numerator / denominator;
+
     Column buildVarBox(String title, double amount) {
       return Column(
         children: [
@@ -83,7 +90,7 @@ class OnlineDisplay extends StatelessWidget {
                       style: textTheme.displayLarge,
                     ),
                     Text(
-                      '(${CurrencyFormat.brl(priceBtcBrl)})',
+                      '(Alvo: ${CurrencyFormat.usd(targetPrice)})',
                       style: textTheme.bodySmall?.copyWith(
                         fontStyle: FontStyle.italic,
                       ),
