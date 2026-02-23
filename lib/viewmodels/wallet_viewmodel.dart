@@ -155,9 +155,16 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     if (buys.isEmpty) return 0.0;
 
-    final total = buys.fold<double>(0.0, (sum, t) => sum + t.price);
+    final totalInvested = buys.fold<double>(
+      0.0,
+      (sum, t) => sum + (t.price * t.amount),
+    );
 
-    return total / buys.length;
+    final totalBtc = buys.fold<double>(0.0, (sum, t) => sum + t.amount);
+
+    if (totalBtc == 0) return 0.0;
+
+    return totalInvested / totalBtc;
   }
 
   double getTrend(Duration duration) {
