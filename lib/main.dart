@@ -28,7 +28,7 @@ class BtcTrainerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => WalletViewModel(),
+      create: (context) => WalletViewModel()..startTimer(),
       child: MaterialApp(
         title: 'Simulador de Bitcoin',
         theme: AppTheme.lightTheme,

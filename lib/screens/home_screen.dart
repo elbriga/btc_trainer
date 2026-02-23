@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '/services/firebase_helper.dart';
 // import '/services/database_helper.dart';
 import '/viewmodels/wallet_viewmodel.dart';
 import '/widgets/online_display.dart';
@@ -22,41 +20,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  Timer? _timer;
-  DateTime? _lastPricesFetch;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    _timer = Timer.periodic(Duration(minutes: 1), (timer) {
-      _lastPricesFetch = DateTime.now();
-      FirebaseHelper.instance.getLastPrices();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    if (state == AppLifecycleState.resumed) {
-      final cutDate = DateTime.now().subtract(Duration(minutes: 3));
-      if (_lastPricesFetch == null || _lastPricesFetch!.isBefore(cutDate)) {
-        FirebaseHelper.instance.getLastPrices();
-      }
-    }
-  }
-
+class _HomeScreenState extends State<HomeScreen> {
   Future<void> _gotoScreen(Widget screen) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }

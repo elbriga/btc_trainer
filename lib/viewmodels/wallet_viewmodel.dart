@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '/models/currency.dart';
@@ -6,8 +7,10 @@ import '/models/transaction_data.dart';
 import '/services/database_helper.dart';
 import '/services/firebase_helper.dart';
 
-class WalletViewModel extends ChangeNotifier {
+class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final dbHelper = DatabaseHelper.instance;
+  Timer? _timer;
+  DateTime? _lastPricesFetch;
 
   double _brlBalance = 0.0;
   double _usdBalance = 0.0;
@@ -44,10 +47,60 @@ class WalletViewModel extends ChangeNotifier {
   );
 
   WalletViewModel() {
+    WidgetsBinding.instance.addObserver(this);
     initialize();
   }
 
+  void _timerFunction(Timer? timer) {
+    if (_priceHistory.isEmpty) {
+      // safety check if we are initialized
+      return;
+    }
+
+    // This function will call the callback _onNewPriceFromBGService
+    FirebaseHelper.instance.getLastPrices();
+
+    _lastPricesFetch = DateTime.now();
+  }
+
+  void startTimer() {
+    _timer ??= Timer.periodic(Duration(minutes: 1), _timerFunction);
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    stopTimer();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      final tooooLong = DateTime.now().subtract(Duration(minutes: 30));
+      final tooLong = DateTime.now().subtract(Duration(minutes: 1));
+
+      if (_lastPricesFetch == null || _lastPricesFetch!.isBefore(tooooLong)) {
+        // fetch all price data again
+        initialize();
+      } else if (_lastPricesFetch!.isBefore(tooLong)) {
+        _timerFunction(null);
+      }
+      startTimer();
+    } else if (state == AppLifecycleState.paused) {
+      stopTimer();
+    }
+  }
+
   Future<void> initialize() async {
+    // avoid a new price while initing
     FirebaseHelper.instance.onNewPrice = null;
 
     _priceHistory = [];
