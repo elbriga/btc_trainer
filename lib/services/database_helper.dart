@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'package:btc_trainer/services/firebase_helper.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 
+import '/viewmodels/wallet_viewmodel.dart';
+import '/services/firebase_helper.dart';
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
 import '/models/currency.dart';
@@ -28,8 +29,11 @@ class DatabaseHelper {
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
+  int _getPricesExecID = 0; // Avoid concurrency problems
   Future<List<PriceData>> getPrices(DateTime firstTX) async {
     final List<PriceData> prices = [];
+
+    int myExecID = ++_getPricesExecID;
 
     final results = await Future.wait([
       (() async {
@@ -39,6 +43,10 @@ class DatabaseHelper {
         return await _fetchHistoryPrices(firstTX);
       })(),
     ]);
+
+    if (myExecID != _getPricesExecID) {
+      throw HistoryFetchException('OBSOLET $myExecID');
+    }
 
     final today = results[0];
     final history = results[1];

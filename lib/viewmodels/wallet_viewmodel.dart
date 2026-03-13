@@ -106,6 +106,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> initialize() async {
+    print('>>>>>>> INIT :::::::::::::');
     _priceHistory = [];
     _transactions = [];
 
@@ -129,7 +130,11 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future _loadPricesData() async {
     DateTime firstTX = getFirstBtcTransaction();
-    _priceHistory = await dbHelper.getPrices(firstTX);
+    try {
+      _priceHistory = await dbHelper.getPrices(firstTX);
+    } on HistoryFetchException {
+      // Ignore OBSOLET errors
+    }
   }
 
   DateTime getFirstBtcTransaction() {
@@ -318,4 +323,13 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
     }
   }
+}
+
+class HistoryFetchException implements Exception {
+  final String message;
+
+  HistoryFetchException(this.message);
+
+  @override
+  String toString() => 'HistoryFetchException: $message';
 }

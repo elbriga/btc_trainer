@@ -102,9 +102,12 @@ class _GraficoState extends State<Grafico> {
   @override
   Widget build(BuildContext context) {
     if (widget.viewModel.priceHistory.isEmpty) {
-      return const SizedBox(
-        height: 150,
-        child: Center(child: Text("Ainda não há dados de preço.")),
+      return GestureDetector(
+        onDoubleTap: widget.viewModel.initialize,
+        child: const SizedBox(
+          height: 150,
+          child: Center(child: Text("Ainda não há dados de preço.")),
+        ),
       );
     }
 
