@@ -8,4 +8,4 @@ Este é um aplicativo de simulação que permite que você aprenda a comprar e v
 
 O aplicativo tem um segredo: Toque na nuvem e você ganha mais R$ 50.000,00 para continuar treinando suas estratégias!
 
-Faça seus aportes!
+Façam suas apostas!
