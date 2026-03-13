@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
 import '/services/database_helper.dart';
+import '/services/firebase_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -24,7 +25,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future _loadData() async {
-    var txs = await DatabaseHelper.instance.getTransactions();
+    final user = FirebaseHelper.instance.currentUser;
+    List txs;
+    if (user != null) {
+      txs = await FirebaseHelper.instance.getTransactions();
+    } else {
+      txs = await DatabaseHelper.instance.getTransactions();
+    }
 
     setState(() {
       _totTxs = txs.length;
@@ -76,8 +83,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _signOut(BuildContext context) async {
+    await FirebaseHelper.instance.signOut();
+    if (context.mounted) {
+      final walletViewModel = Provider.of<WalletViewModel>(context, listen: false);
+      await walletViewModel.initialize();
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseHelper.instance.currentUser;
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Configurações da Conta')),
       body: SingleChildScrollView(
@@ -89,15 +107,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : Column(
                     spacing: 20,
                     children: [
+                      if (user != null) ...[
+                        Text('Logado como: ${user.email}'),
+                        ElevatedButton(
+                          onPressed: () => _signOut(context),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade100),
+                          child: const Text('Sair / Logout', style: TextStyle(color: Colors.red)),
+                        ),
+                        const Divider(),
+                      ],
                       ElevatedButton(
                         onPressed: _backup,
-                        child: const Text('Download Database'),
+                        child: const Text('Download Local Database (Backup)'),
                       ),
                       ElevatedButton(
                         onPressed: () => _restore(context),
-                        child: const Text('Restore Database'),
+                        child: const Text('Restore Local Database'),
                       ),
-                      Text('Transações na base: $_totTxs'),
+                      Text('Transações exibidas: $_totTxs'),
                     ],
                   ),
           ),

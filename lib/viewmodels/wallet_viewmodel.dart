@@ -124,7 +124,20 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future _loadTransactionsData() async {
-    _transactions = await dbHelper.getTransactions();
+    final user = FirebaseHelper.instance.currentUser;
+    if (user != null) {
+      // Get local transactions first to check for migration
+      final localTransactions = await dbHelper.getTransactions();
+      if (localTransactions.isNotEmpty) {
+        await FirebaseHelper.instance.migrateTransactions(localTransactions);
+        // Clean up local transactions after migration to avoid repeated migrations
+        // We could also just leave them, migrateTransactions checks if firestore is empty
+      }
+      
+      _transactions = await FirebaseHelper.instance.getTransactions();
+    } else {
+      _transactions = await dbHelper.getTransactions();
+    }
     _recalculateBalances();
   }
 
@@ -194,6 +207,11 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<double> getHeavenIntervention() async {
     var transaction = await dbHelper.insertHeavenTransaction(null);
+    final user = FirebaseHelper.instance.currentUser;
+    if (user != null) {
+      await FirebaseHelper.instance.saveTransaction(transaction);
+      // Fetch again to ensure sync if needed, but for now just update local list
+    }
     _transactions.insert(0, transaction);
     _recalculateBalances();
     notifyListeners();
@@ -253,7 +271,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.saveTransaction(transaction);
+      } else {
+        await dbHelper.insertTransaction(transaction);
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -274,7 +297,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.saveTransaction(transaction);
+      } else {
+        await dbHelper.insertTransaction(transaction);
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -296,7 +324,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.saveTransaction(transaction);
+      } else {
+        await dbHelper.insertTransaction(transaction);
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -317,7 +350,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.saveTransaction(transaction);
+      } else {
+        await dbHelper.insertTransaction(transaction);
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
