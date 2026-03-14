@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/firebase_helper.dart';
-import '../viewmodels/wallet_viewmodel.dart';
+
+import '/services/firebase_helper.dart';
+import '/viewmodels/wallet_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,17 +38,20 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text.trim(),
         );
       }
-      
+
       // After login, we need to re-initialize the wallet view model
       if (mounted) {
-        final walletViewModel = Provider.of<WalletViewModel>(context, listen: false);
+        final walletViewModel = Provider.of<WalletViewModel>(
+          context,
+          listen: false,
+        );
         await walletViewModel.initialize();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -85,9 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             TextButton(
               onPressed: () => setState(() => _isLogin = !_isLogin),
-              child: Text(_isLogin
-                  ? 'Não tem uma conta? Cadastre-se'
-                  : 'Já tem uma conta? Entre'),
+              child: Text(
+                _isLogin
+                    ? 'Não tem uma conta? Cadastre-se'
+                    : 'Já tem uma conta? Entre',
+              ),
             ),
           ],
         ),

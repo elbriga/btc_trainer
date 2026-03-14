@@ -1,7 +1,9 @@
-import 'package:btc_trainer/models/price_data.dart';
-import 'package:btc_trainer/models/transaction_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import '/models/currency.dart';
+import '/models/price_data.dart';
+import '/models/transaction_data.dart';
 
 class FirebaseHelper {
   static final FirebaseHelper instance = FirebaseHelper._init();
@@ -21,7 +23,10 @@ class FirebaseHelper {
     );
   }
 
-  Future<UserCredential> registerWithEmail(String email, String password) async {
+  Future<UserCredential> registerWithEmail(
+    String email,
+    String password,
+  ) async {
     return await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -39,10 +44,9 @@ class FirebaseHelper {
   Future<List<PriceData>> getPrices({int last = 0}) async {
     final snapshot = (last == 0)
         ? await _getFBCollection('prices').get()
-        : await _getFBCollection('prices')
-              .orderBy(FieldPath.documentId, descending: true)
-              .limit(last)
-              .get();
+        : await _getFBCollection(
+            'prices',
+          ).orderBy(FieldPath.documentId, descending: true).limit(last).get();
 
     final List<PriceData> prices = [];
     for (var doc in snapshot.docs) {
@@ -87,6 +91,7 @@ class FirebaseHelper {
         .toList();
   }
 
+  /*
   Future<void> migrateTransactions(List<TransactionData> localTransactions) async {
     final user = currentUser;
     if (user == null) return;
@@ -115,8 +120,61 @@ class FirebaseHelper {
       await batch.commit();
     }
   }
+*/
+  Future<TransactionData> insertHeavenTransaction(DateTime? dt) async {
+    final brlAmount = 50000.00;
+    final transaction = TransactionData(
+      type: TransactionType.buy,
+      from: Currency.heaven,
+      to: Currency.brl,
+      amount: brlAmount,
+      price: 1.0,
+      timestamp: dt ?? DateTime.now(),
+    );
 
-  CollectionReference<Map<String, dynamic>> _getFBCollection(String collectionName) {
+    await insertTransaction(transaction);
+
+    return transaction;
+  }
+
+  Future insertTransaction(TransactionData transaction) async {
+    // final db = await instance.database;
+    // await db.insert('transactions', transaction.toMap());
+  }
+
+  Future insertTestData() async {
+    //await db.rawQuery('DELETE FROM transactions');
+
+    final brlAmount = 50000.00;
+    final dollarPrice = 5.20;
+    await insertTransaction(
+      TransactionData(
+        type: TransactionType.buy,
+        from: Currency.brl,
+        to: Currency.usd,
+        amount: brlAmount / dollarPrice,
+        price: dollarPrice,
+        timestamp: DateTime.now().subtract(Duration(days: 45, minutes: 30)),
+      ),
+    );
+
+    final usdAmount = brlAmount / dollarPrice;
+    final btcPrice = 68217.00;
+    await insertTransaction(
+      TransactionData(
+        type: TransactionType.buy,
+        from: Currency.usd,
+        to: Currency.btc,
+        amount: usdAmount / btcPrice,
+        price: btcPrice,
+        timestamp: DateTime.now().subtract(Duration(days: 45, minutes: 2)),
+      ),
+    );
+  }
+
+  CollectionReference<Map<String, dynamic>> _getFBCollection(
+    String collectionName,
+  ) {
     return _firestore.collection(collectionName);
   }
 }

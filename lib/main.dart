@@ -8,7 +8,6 @@ import '/firebase_options.dart';
 import '/screens/login_screen.dart';
 import '/screens/home_screen.dart';
 import '/viewmodels/wallet_viewmodel.dart';
-import '/services/database_helper.dart';
 import '/services/firebase_helper.dart';
 import '/theme/theme.dart';
 
@@ -18,9 +17,6 @@ Future<void> main() async {
   await initializeDateFormatting('pt_BR', null);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Check for DB updates on start
-  await DatabaseHelper.instance.checkUpdateDB();
 
   runApp(const BtcTrainerApp());
 }
