@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
 
 // import '/services/database_helper.dart';
 import '/viewmodels/wallet_viewmodel.dart';
@@ -31,13 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Simulador de Bitcoin'),
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.refresh),
-          //   tooltip: 'Refresh',
-          //   onPressed: () {
-          //     DatabaseHelper.instance.checkUpdateDB();
-          //   },
-          // ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Configurações',
@@ -50,28 +44,45 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer<WalletViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 2,
-                left: 6,
-                right: 6,
-                bottom: 4,
+            return Center(
+              child: GestureDetector(
+                onDoubleTap: viewModel.initialize,
+                child: Column(
+                  children: [
+                    SizedBox(height: 100),
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text('Carregando transações'),
+                  ],
+                ),
               ),
-              child: Column(
-                spacing: 10,
-                children: [
-                  OnlineDisplay(viewModel),
-                  Grafico(viewModel),
-                  BalanceDisplay(viewModel),
-                  _buildActionButtons(context, viewModel),
-                  SizedBox(
-                    height: 500.0,
-                    child: _buildTransactionHistory(context, viewModel),
+            );
+          }
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : 1200),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 2,
+                    left: 6,
+                    right: 6,
+                    bottom: 4,
                   ),
-                ],
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      OnlineDisplay(viewModel),
+                      Grafico(viewModel),
+                      BalanceDisplay(viewModel),
+                      _buildActionButtons(context, viewModel),
+                      SizedBox(
+                        height: 500.0,
+                        child: _buildTransactionHistory(context, viewModel),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
