@@ -47,8 +47,8 @@ class TransactionData {
       to: Currency.values.firstWhere(
         (e) => e.toString().split('.').last == map['to'],
       ),
-      amount: map['amount'],
-      price: map['price'],
+      amount: map['amount'] + 0.0,
+      price: map['price'] + 0.0,
       timestamp: DateTime.parse(map['timestamp']),
     );
   }
