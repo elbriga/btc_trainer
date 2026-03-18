@@ -199,11 +199,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<double> getHeavenIntervention() async {
     var transaction = await fbHelper.insertHeavenTransaction(null);
-    final user = FirebaseHelper.instance.currentUser;
-    if (user != null) {
-      await FirebaseHelper.instance.saveTransaction(transaction);
-      // Fetch again to ensure sync if needed, but for now just update local list
-    }
+
     _transactions.insert(0, transaction);
     _recalculateBalances();
     notifyListeners();
@@ -265,7 +261,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final user = FirebaseHelper.instance.currentUser;
       if (user != null) {
-        await FirebaseHelper.instance.saveTransaction(transaction);
+        await FirebaseHelper.instance.insertTransaction(transaction);
       } else {
         // TODO ::
       }
@@ -291,7 +287,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final user = FirebaseHelper.instance.currentUser;
       if (user != null) {
-        await FirebaseHelper.instance.saveTransaction(transaction);
+        await FirebaseHelper.instance.insertTransaction(transaction);
       } else {
         // TODO ::
       }
@@ -318,7 +314,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final user = FirebaseHelper.instance.currentUser;
       if (user != null) {
-        await FirebaseHelper.instance.saveTransaction(transaction);
+        await FirebaseHelper.instance.insertTransaction(transaction);
       } else {
         // TODO ::
       }
@@ -344,7 +340,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final user = FirebaseHelper.instance.currentUser;
       if (user != null) {
-        await FirebaseHelper.instance.saveTransaction(transaction);
+        await FirebaseHelper.instance.insertTransaction(transaction);
       } else {
         // TODO ::
       }

@@ -48,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await walletViewModel.initialize();
       }
     } catch (e) {
+      // print(e);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -69,11 +70,13 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // TODO :: Text('TODO : Somente Google Login'),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'E-mail'),
               keyboardType: TextInputType.emailAddress,
             ),
+            SizedBox(height: 20),
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Senha'),

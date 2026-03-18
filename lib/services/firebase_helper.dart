@@ -64,7 +64,7 @@ class FirebaseHelper {
     return prices;
   }
 
-  Future<void> saveTransaction(TransactionData transaction) async {
+  Future<void> insertTransaction(TransactionData transaction) async {
     final user = currentUser;
     if (user == null) return;
 
@@ -77,7 +77,8 @@ class FirebaseHelper {
 
   Future<List<TransactionData>> getTransactions() async {
     final user = currentUser;
-    if (user == null) return [];
+    //print('>>>>>>>>>>>>>>>>>>>>> GET TRANSACTIONS for $user');
+    if (user == null) return []; // throw!
 
     final snapshot = await _firestore
         .collection('users')
@@ -86,41 +87,14 @@ class FirebaseHelper {
         .orderBy('timestamp', descending: true)
         .get();
 
-    return snapshot.docs
+    final txs = snapshot.docs
         .map((doc) => TransactionData.fromMap(doc.data()))
         .toList();
+
+    //print('LEN :::::::::: ${txs.length}');
+    return txs;
   }
 
-  /*
-  Future<void> migrateTransactions(List<TransactionData> localTransactions) async {
-    final user = currentUser;
-    if (user == null) return;
-
-    final collection = _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('transactions');
-
-    // Check if we already have transactions to avoid duplicates
-    final existing = await collection.limit(1).get();
-    if (existing.docs.isNotEmpty) return;
-
-    // Firestore batch limit is 500
-    for (var i = 0; i < localTransactions.length; i += 500) {
-      final batch = _firestore.batch();
-      final end = (i + 500 < localTransactions.length)
-          ? i + 500
-          : localTransactions.length;
-      
-      final chunk = localTransactions.sublist(i, end);
-      for (var tx in chunk) {
-        final docRef = collection.doc();
-        batch.set(docRef, tx.toMap());
-      }
-      await batch.commit();
-    }
-  }
-*/
   Future<TransactionData> insertHeavenTransaction(DateTime? dt) async {
     final brlAmount = 50000.00;
     final transaction = TransactionData(
@@ -135,11 +109,6 @@ class FirebaseHelper {
     await insertTransaction(transaction);
 
     return transaction;
-  }
-
-  Future insertTransaction(TransactionData transaction) async {
-    // final db = await instance.database;
-    // await db.insert('transactions', transaction.toMap());
   }
 
   Future insertTestData() async {
