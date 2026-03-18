@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import '/models/currency.dart';
 import '/models/price_data.dart';
 import '/models/transaction_data.dart';
-import '/services/database_helper.dart';
 import '/services/firebase_helper.dart';
+import '/services/http_helper.dart';
 
 class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
-  final dbHelper = DatabaseHelper.instance;
+  final fbHelper = FirebaseHelper.instance;
+  final httpHelper = HttpHelper.instance;
+
   Timer? _timer;
   DateTime? _lastPricesFetch;
 
@@ -124,14 +126,17 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future _loadTransactionsData() async {
-    _transactions = await dbHelper.getTransactions();
+    final user = fbHelper.currentUser;
+    if (user != null) {
+      _transactions = await fbHelper.getTransactions();
+    }
     _recalculateBalances();
   }
 
   Future _loadPricesData() async {
     DateTime firstTX = getFirstBtcTransaction();
     try {
-      _priceHistory = await dbHelper.getPrices(firstTX);
+      _priceHistory = await httpHelper.getPrices(firstTX);
     } on HistoryFetchException {
       // Ignore OBSOLET errors
     }
@@ -193,7 +198,8 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<double> getHeavenIntervention() async {
-    var transaction = await dbHelper.insertHeavenTransaction(null);
+    var transaction = await fbHelper.insertHeavenTransaction(null);
+
     _transactions.insert(0, transaction);
     _recalculateBalances();
     notifyListeners();
@@ -253,7 +259,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.insertTransaction(transaction);
+      } else {
+        // TODO ::
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -274,7 +285,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.insertTransaction(transaction);
+      } else {
+        // TODO ::
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -296,7 +312,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.insertTransaction(transaction);
+      } else {
+        // TODO ::
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
@@ -317,7 +338,12 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
         timestamp: DateTime.now(),
       );
 
-      await dbHelper.insertTransaction(transaction);
+      final user = FirebaseHelper.instance.currentUser;
+      if (user != null) {
+        await FirebaseHelper.instance.insertTransaction(transaction);
+      } else {
+        // TODO ::
+      }
       _transactions.insert(0, transaction);
       _recalculateBalances();
       notifyListeners();
