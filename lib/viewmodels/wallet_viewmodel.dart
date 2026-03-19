@@ -50,7 +50,7 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   WalletViewModel() {
     WidgetsBinding.instance.addObserver(this);
-    initialize();
+    // initialize(); Done after login
   }
 
   void _timerFunction(Timer? timer) async {
