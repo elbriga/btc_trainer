@@ -129,6 +129,9 @@ class WalletViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final user = fbHelper.currentUser;
     if (user != null) {
       _transactions = await fbHelper.getTransactions();
+      if (_transactions.isEmpty) {
+        getHeavenIntervention();
+      }
     }
     _recalculateBalances();
   }

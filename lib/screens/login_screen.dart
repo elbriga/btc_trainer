@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLogin = true;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -25,18 +27,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    final email = _emailController.text.trim().toLowerCase();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Preencha os campos!')));
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       if (_isLogin) {
-        await FirebaseHelper.instance.signInWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
+        await FirebaseHelper.instance.signInWithEmail(email, password);
       } else {
-        await FirebaseHelper.instance.registerWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
+        await FirebaseHelper.instance.registerWithEmail(email, password);
       }
 
       // After login, we need to re-initialize the wallet view model
@@ -47,12 +53,19 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         await walletViewModel.initialize();
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (_) {
       // print(e);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erro: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('Falha no Login')));
+      }
+    } catch (_) {
+      // print(e);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro no Login')));
       }
     } finally {
       if (mounted) {
@@ -70,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // TODO :: Text('TODO : Somente Google Login'),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'E-mail'),
@@ -79,8 +91,20 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 20),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Senha'),
-              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Senha',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+              ),
+              obscureText: _obscurePassword,
             ),
             const SizedBox(height: 20),
             if (_isLoading)
