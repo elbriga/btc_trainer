@@ -1,11 +1,11 @@
 {
-    "name": "btc_trainer",
-    "short_name": "btc_trainer",
+    "name": "Bitcoin Trainer",
+    "short_name": "BTC Trainer",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#ff9800",
+    "description": "Treine suas compras!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -2,6 +2,6 @@
 
 web build:
 
-flutter build web --base-href /btc-trainer/html/
+flutter build web --base-href /btc_trainer/html/
 
 constroi em build/web
