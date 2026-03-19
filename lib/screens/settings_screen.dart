@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '/viewmodels/wallet_viewmodel.dart';
 import '/services/firebase_helper.dart';
@@ -12,7 +13,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _processing = false;
+  bool _processing = true;
+  String _version = '...';
   int _totTxs = 0;
 
   _SettingsScreenState() {
@@ -24,12 +26,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     List txs = [];
     if (user != null) {
       txs = await FirebaseHelper.instance.getTransactions();
-    } else {
-      // TODO ::
     }
+
+    final info = await PackageInfo.fromPlatform();
 
     setState(() {
       _totTxs = txs.length;
+      _version = "v${info.version}+${info.buildNumber}";
+      _processing = false;
     });
   }
 
@@ -77,6 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const Divider(),
                       ],
                       Text('Transações exibidas: $_totTxs'),
+                      Text('Versão: $_version'),
                     ],
                   ),
           ),
